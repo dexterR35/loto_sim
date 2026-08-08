@@ -1,0 +1,29 @@
+{
+  "name": "loto-gpt",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c cyan,green \".venv/bin/python backend/server.py --host 127.0.0.1 --port 8000\" \"vite --host 0.0.0.0\"",
+    "dev:api": ".venv/bin/python backend/server.py --host 127.0.0.1 --port 8000",
+    "dev:web": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "extract-content": ".venv/bin/python scripts/extract_content.py",
+    "train:lstm": ".venv/bin/python backend/train_lstm.py --all",
+    "preview": "vite preview --host 0.0.0.0",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "lucide-react": "latest"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "concurrently": "latest",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}

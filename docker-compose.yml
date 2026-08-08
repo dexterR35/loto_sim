@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: loto-gpt:latest
+    ports:
+      - "8000:8000"
+    environment:
+      MPLCONFIGDIR: /tmp/matplotlib
+      TF_CPP_MIN_LOG_LEVEL: "2"
+      DEBUG: "false"
+      WEB_THREADS: "8"
+      RATE_LIMIT_DEFAULT_MAX: "120"
+      RATE_LIMIT_HEAVY_MAX: "20"
+      RATE_LIMIT_ML_MAX: "5"
+      MAX_BODY_BYTES: "65536"
+      # Leave empty for same-origin Docker deploy. Set for dev cross-origin, e.g. http://localhost:5173
+      CORS_ORIGINS: ""
+    volumes:
+      - ./data/lottery:/app/data/lottery
+    restart: unless-stopped

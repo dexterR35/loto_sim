@@ -1,0 +1,14 @@
+{
+  "game": "6din49",
+  "model_type": "lstm",
+  "lookback": 15,
+  "output_size": 49,
+  "metrics": {
+    "val_auc": 0.5008,
+    "val_loss": 0.3721,
+    "train_sequences": 2514,
+    "epochs": 5
+  },
+  "chart_path": "/home/dexter/Desktop/project/srab/data/lottery/ml_charts/6din49_lstm_training.png",
+  "model_path": "/home/dexter/Desktop/project/srab/data/lottery/ml_models/6din49_lstm.keras"
+}

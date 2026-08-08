@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
+  --color-primary: 5 150 105;
+  --color-primary-dark: 4 120 87;
+  --color-primary-light: 52 211 153;
+  --color-primary-soft: 236 253 245;
+}
+
+[data-game='6din49'] {
+  --color-primary: 5 150 105;
+  --color-primary-dark: 4 120 87;
+  --color-primary-light: 52 211 153;
+  --color-primary-soft: 236 253 245;
+}
+
+[data-game='5din40'] {
+  --color-primary: 234 88 12;
+  --color-primary-dark: 194 65 12;
+  --color-primary-light: 251 146 60;
+  --color-primary-soft: 255 247 237;
+}
+
+[data-game='joker'] {
+  --color-primary: 124 58 237;
+  --color-primary-dark: 109 40 217;
+  --color-primary-light: 167 139 250;
+  --color-primary-soft: 245 243 255;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #f7f7f7;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgb(var(--color-primary) / 0.28);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dddddd;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f7f7f7;
+}
+
+@layer components {
+  .lottery-ball {
+    @apply relative inline-flex items-center justify-center rounded-full font-black shadow-[inset_0_-3px_6px_rgba(0,0,0,0.18),0_4px_10px_rgba(16,24,40,0.12)];
+  }
+
+  .lottery-ball::after {
+    content: '';
+    @apply pointer-events-none absolute left-[22%] top-[18%] h-[28%] w-[34%] rounded-full bg-white/35;
+  }
+
+  .ticket-card {
+    @apply relative overflow-hidden rounded-2xl border border-line bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-panel;
+  }
+
+  .ticket-card::before {
+    content: '';
+    @apply absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary-light to-primary-dark;
+  }
+
+  .generator-tab {
+    @apply inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition;
+  }
+
+  .generator-tab-active {
+    @apply border-primary bg-primary text-white shadow-sm;
+  }
+
+  .generator-tab-idle {
+    @apply border-line bg-white text-muted hover:border-primary/30 hover:text-primary;
+  }
+
+  .game-bar {
+    @apply relative overflow-hidden rounded-xl border border-line bg-white p-2 shadow-sm;
+  }
+
+  .game-bar::before {
+    content: '';
+    @apply pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary-light to-primary-dark;
+  }
+
+  .loto-slip {
+    @apply relative overflow-hidden rounded-3xl border border-line/70 bg-white shadow-panel;
+  }
+
+  .loto-slip::before {
+    content: '';
+    @apply pointer-events-none absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-primary via-primary-light to-primary-dark;
+  }
+
+  .loto-variant-panel {
+    @apply flex flex-col overflow-hidden rounded-2xl border border-line/70 bg-white shadow-card ring-1 ring-black/[0.03];
+  }
+
+  .loto-grid-cell {
+    @apply flex items-center justify-center rounded-xl border font-black transition select-none;
+  }
+}
