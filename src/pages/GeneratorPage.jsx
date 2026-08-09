@@ -35,6 +35,7 @@ export function GeneratorPage({
   calculateManual,
   analyzeManual,
   analyzeVariant,
+  onSimulateTarget,
   calcLoading,
   stats,
   mlData,
@@ -80,6 +81,7 @@ export function GeneratorPage({
           onClearTickets={clearTickets}
           onAnalyzeTicket={handleAnalyzeTicket}
           onAnalyzeVariant={analyzeVariant}
+          onSimulateTarget={onSimulateTarget}
           analyzeLoading={calcLoading}
           generateMeta={generateMeta}
           mlData={mlData}

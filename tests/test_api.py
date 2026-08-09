@@ -39,6 +39,7 @@ class Loto649ApiContractTests(unittest.TestCase):
             "/api/649/predictions/history",
             "/api/649/models",
             "/api/649/backtest",
+            "/api/649/target-simulation",
             "/api/649/update",
             "/api/649/train",
         }

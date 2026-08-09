@@ -28,7 +28,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DIST_DIR = ROOT / "dist"
 
 # Import app state after path setup in server module.
-from server import DATA, DIST_DIR as SERVER_DIST_DIR, GAME_CONFIGS, STRATEGIES  # noqa: E402
+from server import DATA, DIST_DIR as SERVER_DIST_DIR, GAME_CONFIGS, LOTO649, STRATEGIES  # noqa: E402
+from target_simulation import DEFAULT_MODEL_KEYS  # noqa: E402
 
 DIST_DIR = SERVER_DIST_DIR
 
@@ -41,6 +42,7 @@ URL_MAP = Map([
     Rule("/api/stats", endpoint="stats", methods=["GET"]),
     Rule("/api/draws", endpoint="draws", methods=["GET"]),
     Rule("/api/ml", endpoint="ml", methods=["GET"]),
+    Rule("/api/649/target-simulation", endpoint="target_simulation", methods=["POST"]),
     Rule("/api/generate", endpoint="generate", methods=["POST"]),
     Rule("/api/analyze", endpoint="analyze", methods=["POST"]),
     Rule("/api/calculate", endpoint="calculate", methods=["POST"]),
@@ -50,7 +52,7 @@ URL_MAP = Map([
 
 
 def route_class(endpoint: str, payload: dict[str, Any] | None = None) -> str:
-    if endpoint == "ml":
+    if endpoint in {"ml", "target_simulation"}:
         return "ml"
     if endpoint in {"generate", "analyze", "calculate"}:
         strategy = str((payload or {}).get("strategy", ""))
@@ -123,6 +125,26 @@ def handle_generate(payload: dict[str, Any]) -> dict[str, Any]:
     return DATA.generate(game, strategy, ticket_count, seed_value, simulations)
 
 
+def handle_target_simulation(payload: dict[str, Any]) -> dict[str, Any]:
+    numbers = payload.get("numbers", [])
+    if isinstance(numbers, str):
+        numbers = [int(part) for part in re.findall(r"\d+", numbers)]
+    models = payload.get("models") or list(DEFAULT_MODEL_KEYS)
+    if isinstance(models, str):
+        models = [part.strip() for part in models.split(",") if part.strip()]
+    if not isinstance(models, list):
+        raise ValueError("Models must be a list")
+    seed = payload.get("seed")
+    seed_value = int(seed) if seed not in (None, "") else None
+    return DATA.target_simulation_649(
+        [int(number) for number in numbers],
+        clamp_int(payload.get("attempt_limit"), 1_000_000, 1, 1_000_000_000_000),
+        [str(model) for model in models],
+        seed_value,
+        ensemble_prediction=LOTO649.latest_prediction(create_if_missing=False),
+    )
+
+
 def handle_analyze(payload: dict[str, Any]) -> dict[str, Any]:
     game = require_game(str(payload.get("game", "6din49")))
     numbers = payload.get("numbers", [])
@@ -180,6 +202,7 @@ HANDLERS: dict[str, Callable[..., Any]] = {
     "draws": lambda game, limit=None, offset=None, year=None, **_: handle_draws(game, limit, offset, year),
     "ml": lambda game, **_: handle_ml(game),
     "generate": lambda payload, **_: handle_generate(payload),
+    "target_simulation": lambda payload, **_: handle_target_simulation(payload),
     "analyze": lambda payload, **_: handle_analyze(payload),
     "calculate": lambda payload, **_: handle_calculate(payload),
     "static": lambda filename="index.html", **_: serve_static(filename),

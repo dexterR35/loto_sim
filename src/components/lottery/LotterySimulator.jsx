@@ -109,6 +109,7 @@ export function LotterySimulator({
   onClearTickets,
   onAnalyzeTicket,
   onAnalyzeVariant,
+  onSimulateTarget,
   analyzeLoading,
   generateMeta,
   mlData
@@ -129,6 +130,7 @@ export function LotterySimulator({
           loading={loading}
           runGenerateApi={runGenerateApi}
           onAnalyze={onAnalyzeVariant}
+          onSimulateTarget={onSimulateTarget}
           analyzeLoading={analyzeLoading}
           mlData={mlData}
           beginGenerateSession={beginGenerateSession}

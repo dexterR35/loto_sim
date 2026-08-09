@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronUp, Loader2, Minus, Plus, Search, Ticket } from 'lucide-react';
+import { ChevronUp, Loader2, Minus, Plus, Search, Target, Ticket } from 'lucide-react';
 import {
   LOTO_649_PICK,
   LOTO_649_LINE_PRICE,
@@ -185,6 +185,7 @@ export function TicketPickSection({
   onClear,
   onGenerate,
   onAnalyze,
+  onSimulateTarget,
   analyzeLoading,
   analyzingVariant,
   mlHints,
@@ -195,6 +196,7 @@ export function TicketPickSection({
   const lines = count >= pick ? combinations(count, pick) : 0;
   const cost = lines * linePrice;
   const hasTicket = count >= pick;
+  const canSimulateTarget = count === pick && typeof onSimulateTarget === 'function';
   const canAnalyze = hasTicket;
 
   return (
@@ -255,6 +257,16 @@ export function TicketPickSection({
               Analyze combination
             </button>
           ) : null}
+          {canSimulateTarget ? (
+            <button
+              type="button"
+              onClick={() => onSimulateTarget(numbers)}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-grape/25 bg-grape/5 px-4 py-2.5 text-sm font-bold text-grape transition-colors hover:bg-grape/10"
+            >
+              <Target size={14} />
+              Simulate exact target
+            </button>
+          ) : null}
           {footerExtra}
         </>
       }
@@ -310,6 +322,7 @@ export function Loto649SlipCard({
   onVariantClear,
   onVariantGenerate,
   onAnalyze,
+  onSimulateTarget,
   analyzeLoading,
   analyzingVariant,
   genSource,
@@ -347,6 +360,7 @@ export function Loto649SlipCard({
             onClear={() => onVariantClear?.(slipIndex, variantIndex)}
             onGenerate={() => onVariantGenerate?.(slipIndex, variantIndex)}
             onAnalyze={(lbl, nums) => onAnalyze?.(analyzeKey, nums)}
+            onSimulateTarget={(nums) => onSimulateTarget?.(nums)}
             analyzeLoading={analyzeLoading}
             analyzingVariant={analyzingVariant}
             mlHints={mlHints}

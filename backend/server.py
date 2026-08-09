@@ -26,6 +26,14 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
+from target_simulation import (
+    DEFAULT_MODEL_KEYS,
+    MODEL_DEFINITIONS as TARGET_MODEL_DEFINITIONS,
+    simulate_target_models,
+    validate_model_keys,
+    validate_target,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data" / "lottery"
 DIST_DIR = ROOT / "dist"
@@ -1117,6 +1125,120 @@ class LotoData:
             payload["blend_note"] = "final = 35% RAG retrieval + 65% ML (sklearn/LSTM)"
         return payload
 
+    def target_simulation_649(
+        self,
+        numbers: list[int],
+        attempt_limit: int = 1_000_000,
+        model_keys: list[str] | None = None,
+        seed: int | None = None,
+        ensemble_prediction: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Compare fixed current model distributions against one exact 6/49 target."""
+        target = validate_target(numbers)
+        requested = validate_model_keys(model_keys)
+        rows = self.by_game.get("6din49", [])
+        if not rows:
+            raise ValueError("No Loto 6/49 history is available")
+
+        archive_strategies = {"balanced", "hot", "cold", "overdue", "monte_carlo"}
+        ml_keys = {"ml_sklearn", "ml_lstm", "ml_blend"}
+        ml_payload: dict[str, Any] | None = None
+        ml_error: str | None = None
+        if any(key in ml_keys for key in requested):
+            try:
+                ml_payload = self.get_ml().predict_detailed("6din49", rows)
+            except Exception as exc:
+                ml_error = str(exc)
+
+        predictions = list((ml_payload or {}).get("predictions", []))
+        ml_models = dict((ml_payload or {}).get("models", {}))
+        model_specs: list[dict[str, Any]] = []
+        for key in requested:
+            if key == "random":
+                model_specs.append({
+                    "key": key,
+                    "weights": {number: 1.0 for number in range(1, 50)},
+                    "details": {"source": "uniform 6/49 mechanism"},
+                })
+                continue
+            if key in archive_strategies:
+                model_specs.append({
+                    "key": key,
+                    "weights": self.strategy_weights("6din49", key),
+                    "details": {"source": "current lottery_history.csv archive signals"},
+                })
+                continue
+            if key in ml_keys:
+                field = {
+                    "ml_sklearn": "probability_sklearn",
+                    "ml_lstm": "probability_lstm",
+                    "ml_blend": "probability_blend",
+                }[key]
+                model_name = "sklearn" if key == "ml_sklearn" else "lstm" if key == "ml_lstm" else "blend"
+                model_status = ml_models.get(model_name, {}) if model_name != "blend" else {
+                    "status": "ready" if predictions else "unavailable",
+                    "blend_available": bool((ml_payload or {}).get("blend_available")),
+                }
+                weights = {
+                    int(item["number"]): float(item[field])
+                    for item in predictions
+                    if item.get(field) is not None
+                }
+                error = ml_error
+                if not error and len(weights) != 49:
+                    status = model_status.get("status", "unavailable")
+                    error = str(model_status.get("error") or f"{model_name} model is {status}")
+                model_specs.append({
+                    "key": key,
+                    "weights": weights if not error else None,
+                    "error": error,
+                    "details": {
+                        "source": "current trained model probabilities",
+                        "status": model_status.get("status"),
+                        "metrics": model_status.get("metrics", {}),
+                    },
+                })
+                continue
+
+            ranking = list((ensemble_prediction or {}).get("ranking", []))
+            ensemble_weights = {
+                int(item["number"]): float(item.get("modeled_probability", item.get("final_score", 0.0)))
+                for item in ranking
+                if item.get("number") is not None
+            }
+            model_specs.append({
+                "key": key,
+                "weights": ensemble_weights if len(ensemble_weights) == 49 else None,
+                "error": None if len(ensemble_weights) == 49 else "No complete frozen prediction snapshot is available",
+                "details": {
+                    "source": "latest immutable research prediction",
+                    "prediction_id": (ensemble_prediction or {}).get("prediction_id"),
+                    "prediction_target_date": (ensemble_prediction or {}).get("target_draw_date"),
+                    "history_end_date": (ensemble_prediction or {}).get("history_end_date"),
+                    "model_version": (ensemble_prediction or {}).get("model_version"),
+                },
+            })
+
+        result = simulate_target_models(target, attempt_limit, model_specs, seed=seed)
+        latest = rows[-1]
+        latest_numbers = sorted(as_ints(latest.get("drawn_numbers", []))[:6])
+        result.update({
+            "history_draws": len(rows),
+            "history_end_date": latest.get("draw_date_iso"),
+            "latest_draw": self.public_draw(latest),
+            "target_matches_latest_draw": latest_numbers == target,
+            "requested_models": requested,
+            "model_catalog": [
+                {"key": key, **definition}
+                for key, definition in TARGET_MODEL_DEFINITIONS.items()
+            ],
+            "disclaimer": (
+                "This experiment measures a model-weighted ticket generator, not the physical lottery. "
+                "Past results can influence current weights and no model improves the lottery's true odds."
+            ),
+        })
+        return result
+
     def rag_similar(self, game: str, numbers: list[int] | None = None, limit: int = 12) -> dict[str, Any]:
         vector_store = self.get_vectors(required=True)
         rows = self.by_game.get(game, [])
@@ -1594,6 +1716,26 @@ def api_generate(payload: dict[str, Any] | None = Body(default=None)) -> dict[st
     seed_value = int(seed) if seed not in (None, "") else None
     simulations = int(payload.get("simulations", 2500))
     return DATA.generate(game, strategy, ticket_count, seed_value, simulations)
+
+
+@app.post("/api/649/target-simulation")
+def api_649_target_simulation(payload: dict[str, Any] | None = Body(default=None)) -> dict[str, Any]:
+    payload = payload or {}
+    numbers = numbers_from_any(payload.get("numbers", []), "6din49")
+    models = payload.get("models") or list(DEFAULT_MODEL_KEYS)
+    if isinstance(models, str):
+        models = [part.strip() for part in models.split(",") if part.strip()]
+    if not isinstance(models, list):
+        raise ValueError("Models must be a list")
+    seed = payload.get("seed")
+    seed_value = int(seed) if seed not in (None, "") else None
+    return DATA.target_simulation_649(
+        numbers if isinstance(numbers, list) else [],
+        int(payload.get("attempt_limit", 1_000_000)),
+        [str(model) for model in models],
+        seed_value,
+        ensemble_prediction=LOTO649.latest_prediction(create_if_missing=False),
+    )
 
 
 @app.post("/api/analyze")

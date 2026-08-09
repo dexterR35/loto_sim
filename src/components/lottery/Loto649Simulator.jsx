@@ -100,6 +100,7 @@ export function Loto649Simulator({
   loading,
   runGenerateApi,
   onAnalyze,
+  onSimulateTarget,
   analyzeLoading,
   mlData,
   beginGenerateSession,
@@ -477,6 +478,7 @@ export function Loto649Simulator({
               onVariantClear={clearVariant}
               onVariantGenerate={generateVariant}
               onAnalyze={(analyzeKey, numbers) => handleAnalyze(analyzeKey, numbers, slipIndex)}
+              onSimulateTarget={onSimulateTarget}
               analyzeLoading={analyzeLoading}
               analyzingVariant={analyzingVariant}
               genSource={genSource}

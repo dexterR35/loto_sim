@@ -9,6 +9,7 @@ import { ArchivePage } from './pages/ArchivePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneratorPage } from './pages/GeneratorPage';
 import { Loto649LabPage } from './pages/Loto649LabPage';
+import { TargetSimulatorPage } from './pages/TargetSimulatorPage';
 
 const DEFAULT_SIMULATIONS = 900;
 
@@ -30,6 +31,7 @@ export default function App() {
   const [ticketCount, setTicketCount] = useState(1);
   const [manualNumbers, setManualNumbers] = useState('1, 2, 3, 4, 5, 6');
   const [manualJoker, setManualJoker] = useState('7');
+  const [targetSimulationNumbers, setTargetSimulationNumbers] = useState([]);
   const [generateMeta, setGenerateMeta] = useState(null);
   const [generatorTab, setGeneratorTab] = useState(() => initialRouteRef.current.view === 'generator' ? initialRouteRef.current.tab : 'play');
   const [statisticsTab, setStatisticsTab] = useState(() => initialRouteRef.current.view === 'statistics' ? initialRouteRef.current.tab : 'inference');
@@ -146,6 +148,25 @@ export default function App() {
     setActiveView(nextView);
     syncBrowserRoute(nextView, game, viewTab);
   }, [activeView, cancelGenerate, game, generatorTab, statisticsTab, syncBrowserRoute]);
+
+  const openTargetSimulator = useCallback((numbers) => {
+    const selected = [...new Set(
+      (Array.isArray(numbers) ? numbers : [])
+        .map(Number)
+        .filter((number) => Number.isInteger(number) && number >= 1 && number <= 49)
+    )].sort((a, b) => a - b);
+    if (selected.length !== 6) {
+      setError('Target Simulator needs exactly six unique numbers from 1 to 49.');
+      return;
+    }
+    cancelGenerate();
+    setError('');
+    setTargetSimulationNumbers(selected);
+    setGame('6din49');
+    setActiveView('target');
+    syncBrowserRoute('target', '6din49', null);
+  }, [cancelGenerate, syncBrowserRoute]);
+
 
   const changeGeneratorTab = useCallback((nextTab) => {
     if (nextTab === generatorTab && activeView === 'generator') return;
@@ -394,6 +415,15 @@ export default function App() {
             />
           ) : null}
 
+          {activeView === 'target' ? (
+            <TargetSimulatorPage
+              game={game}
+              onGameChange={changeGame}
+              onOpenBacktest={() => changeStatisticsTab('backtest')}
+              initialNumbers={targetSimulationNumbers}
+            />
+          ) : null}
+
           {activeView === 'generator' ? (
             <GeneratorPage
               game={game}
@@ -420,6 +450,7 @@ export default function App() {
               calculateManual={calculateManual}
               analyzeManual={analyzeManual}
               analyzeVariant={analyzeVariant}
+              onSimulateTarget={openTargetSimulator}
               calcLoading={calcLoading}
               stats={stats}
               mlData={mlData}
