@@ -1,130 +1,123 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --color-ink: #f4f7fb;
+  --color-field: #07090d;
+  --color-surface: #10141a;
+  --color-elevated: #171c24;
+  --color-line: #252c37;
+  --color-primary: var(--game-primary);
+  --color-primary-dark: var(--game-primary-strong);
+  --color-primary-light: var(--game-primary-light);
+  --color-primary-soft: var(--game-primary-soft);
+  --color-secondary: #64d8ff;
+  --color-secondary-dark: #24a9d1;
+  --color-secondary-soft: #10242d;
+  --color-teal: #65e3cf;
+  --color-coral: #ff7d92;
+  --color-gold: #f3c969;
+  --color-grape: #c5adff;
+  --color-muted: #8b95a5;
+}
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: geometricPrecision;
-  --color-primary: 5 150 105;
-  --color-primary-dark: 4 120 87;
-  --color-primary-light: 52 211 153;
-  --color-primary-soft: 236 253 245;
+  --game-primary: #63f5c2;
+  --game-primary-strong: #2bc994;
+  --game-primary-light: #9bffdc;
+  --game-primary-soft: #10271f;
 }
 
 [data-game='6din49'] {
-  --color-primary: 5 150 105;
-  --color-primary-dark: 4 120 87;
-  --color-primary-light: 52 211 153;
-  --color-primary-soft: 236 253 245;
+  --game-primary: #63f5c2;
+  --game-primary-strong: #2bc994;
+  --game-primary-light: #9bffdc;
+  --game-primary-soft: #10271f;
 }
 
 [data-game='5din40'] {
-  --color-primary: 234 88 12;
-  --color-primary-dark: 194 65 12;
-  --color-primary-light: 251 146 60;
-  --color-primary-soft: 255 247 237;
+  --game-primary: #ff9b6a;
+  --game-primary-strong: #e86d35;
+  --game-primary-light: #ffc0a0;
+  --game-primary-soft: #2b1a13;
 }
 
 [data-game='joker'] {
-  --color-primary: 124 58 237;
-  --color-primary-dark: 109 40 217;
-  --color-primary-light: 167 139 250;
-  --color-primary-soft: 245 243 255;
+  --game-primary: #b89cff;
+  --game-primary-strong: #8866ec;
+  --game-primary-light: #d4c5ff;
+  --game-primary-soft: #211a35;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  background: #f7f7f7;
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-}
-
-button,
-input,
-select {
-  font: inherit;
-}
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 3px solid rgb(var(--color-primary) / 0.28);
-  outline-offset: 2px;
-}
-
-::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #dddddd;
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f7f7f7;
-}
-
-@layer components {
-  .lottery-ball {
-    @apply relative inline-flex items-center justify-center rounded-full font-black shadow-[inset_0_-3px_6px_rgba(0,0,0,0.18),0_4px_10px_rgba(16,24,40,0.12)];
+@layer base {
+  * {
+    box-sizing: border-box;
   }
 
-  .lottery-ball::after {
-    content: '';
-    @apply pointer-events-none absolute left-[22%] top-[18%] h-[28%] w-[34%] rounded-full bg-white/35;
+  html {
+    min-width: 320px;
+    background: #07090d;
   }
 
-  .ticket-card {
-    @apply relative overflow-hidden rounded-2xl border border-line bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-panel;
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    background: #07090d;
+    color: #f4f7fb;
+    font-family: var(--font-sans);
   }
 
-  .ticket-card::before {
-    content: '';
-    @apply absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary-light to-primary-dark;
+  button,
+  input,
+  select {
+    color: inherit;
+    font: inherit;
   }
 
-  .generator-tab {
-    @apply inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition;
+  button:not(:disabled),
+  select:not(:disabled) {
+    cursor: pointer;
   }
 
-  .generator-tab-active {
-    @apply border-primary bg-primary text-white shadow-sm;
+  input::placeholder {
+    color: #626c7b;
   }
 
-  .generator-tab-idle {
-    @apply border-line bg-white text-muted hover:border-primary/30 hover:text-primary;
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--game-primary);
+    outline-offset: 3px;
   }
 
-  .game-bar {
-    @apply relative overflow-hidden rounded-xl border border-line bg-white p-2 shadow-sm;
+  select option {
+    background: #10141a;
+    color: #f4f7fb;
   }
 
-  .game-bar::before {
-    content: '';
-    @apply pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary-light to-primary-dark;
+  ::selection {
+    background: var(--game-primary);
+    color: #07090d;
   }
 
-  .loto-slip {
-    @apply relative overflow-hidden rounded-3xl border border-line/70 bg-white shadow-panel;
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
 
-  .loto-slip::before {
-    content: '';
-    @apply pointer-events-none absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-primary via-primary-light to-primary-dark;
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid #07090d;
+    border-radius: 999px;
+    background: #343c49;
   }
 
-  .loto-variant-panel {
-    @apply flex flex-col overflow-hidden rounded-2xl border border-line/70 bg-white shadow-card ring-1 ring-black/[0.03];
-  }
-
-  .loto-grid-cell {
-    @apply flex items-center justify-center rounded-xl border font-black transition select-none;
+  ::-webkit-scrollbar-track {
+    background: #07090d;
   }
 }

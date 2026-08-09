@@ -23,9 +23,9 @@ import { JokerPanel, Loto649SlipCard, NorocPanel, TicketCostDock } from './Loto6
 import { StrategyTicketControls } from './StrategyTicketControls';
 
 const LOCAL_STRATEGIES = [
-  { key: 'random', label: 'Aleator', icon: TrendingUp, description: 'Numere aleatoare pe grilă.' },
-  { key: 'ml_blend', label: 'Blend ML', icon: BrainCircuit, description: 'Blend sklearn + LSTM din predicțiile locale.' },
-  { key: 'ml_rag', label: 'RAG+ML', icon: Database, description: 'Predicții blend cu extrageri similare (vector RAG).' }
+  { key: 'random', label: 'Random', icon: TrendingUp, description: 'Random numbers on the grid.' },
+  { key: 'ml_blend', label: 'ML blend', icon: BrainCircuit, description: 'A sklearn + LSTM blend from local predictions.' },
+  { key: 'ml_rag', label: 'RAG+ML', icon: Database, description: 'Blended predictions with similar draws from vector retrieval.' }
 ];
 
 const ALL_STRATEGIES = [...STRATEGIES, ...LOCAL_STRATEGIES];
@@ -400,33 +400,33 @@ export function Loto649Simulator({
   };
 
   return (
-    <div className="w-full space-y-4">
-      <div className="flex flex-wrap items-center justify-end gap-2 rounded-xl border border-line bg-white px-4 py-3 shadow-sm">
+    <div className="grid w-full gap-4">
+      <div className="grid auto-cols-max grid-flow-col justify-end gap-2 overflow-x-auto">
         <button
           type="button"
           onClick={clearAll}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-field px-3 py-2 text-xs font-black text-ink hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-full bg-elevated px-4 py-2.5 text-xs font-bold text-ink hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <Eraser size={14} /> Șterge tot
+          <Eraser size={14} /> Clear all
         </button>
         {loading ? (
           <button
             type="button"
             onClick={cancelGenerate}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-4 py-2 text-xs font-black text-ink hover:border-primary hover:text-primary"
+            className="inline-flex items-center gap-1.5 rounded-full bg-elevated px-4 py-2.5 text-xs font-bold text-ink hover:text-primary"
           >
-            <Square size={14} /> Oprește
+            <Square size={14} /> Stop
           </button>
         ) : null}
         <button
           type="button"
           onClick={generateAll}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-xs font-bold text-field hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-40"
         >
           {loading ? <Loader2 className="animate-spin" size={14} /> : <Shuffle size={14} />}
-          Generează {ticketCount} {ticketCount === 1 ? 'bilet' : 'bilete'}
+          Generate {ticketCount} {ticketCount === 1 ? 'ticket' : 'tickets'}
         </button>
       </div>
 
@@ -439,7 +439,7 @@ export function Loto649Simulator({
         disabled={loading}
       />
 
-      <div className={`space-y-6 ${loading ? 'pointer-events-none opacity-70' : ''}`}>
+      <div className={`grid gap-6 ${loading ? 'pointer-events-none opacity-70' : ''}`}>
         {slips.map((slip, slipIndex) => {
           const footer = config.bonus === 'noroc' ? (
             <NorocPanel

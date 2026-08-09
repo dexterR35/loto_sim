@@ -27,7 +27,7 @@ export function variantCost(count) {
 }
 
 export function formatRon(value) {
-  return `${Number(value).toLocaleString('ro-RO', { minimumFractionDigits: value % 1 ? 2 : 0, maximumFractionDigits: 2 })} ron`;
+  return `${Number(value).toLocaleString('en-GB', { minimumFractionDigits: value % 1 ? 2 : 0, maximumFractionDigits: 2 })} RON`;
 }
 
 export function uniqueSortedNumbers(numbers = [], pool = LOTO_649_POOL, max = Number.POSITIVE_INFINITY) {

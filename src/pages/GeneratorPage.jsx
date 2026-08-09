@@ -1,23 +1,13 @@
 import { useEffect, useState } from 'react';
-import {
-  Activity,
-  BarChart3,
-  Calculator,
-  Grid3x3,
-  Hash
-} from 'lucide-react';
+import { Calculator, Grid3x3 } from 'lucide-react';
 import { AnalysisDetailModal } from '../components/lottery/AnalysisModal';
 import { NumberCalculator } from '../components/lottery/Calculator';
 import { LotterySimulator } from '../components/lottery/LotterySimulator';
-import { NumberAnalysisPage } from './NumberAnalysisPage';
-import { FrequencyBars, NumberPill, OverdueList } from '../components/lottery';
-import { LoadingBlock, Panel } from '../components/ui';
+import { Tabs } from '../components/ui';
 
 const GENERATOR_TABS = [
-  { key: 'play', label: 'Simulator', icon: Grid3x3 },
-  { key: 'analyze', label: 'Analiză variantă', icon: Calculator },
-  { key: 'numbers', label: 'Analiză numere', icon: Hash },
-  { key: 'signals', label: 'Semnale', icon: BarChart3 }
+  { key: 'play', label: 'Play & Generate', icon: Grid3x3 },
+  { key: 'analyze', label: 'Analyze My Numbers', icon: Calculator }
 ];
 
 export function GeneratorPage({
@@ -70,20 +60,8 @@ export function GeneratorPage({
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap gap-2">
-        {GENERATOR_TABS.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setActiveTab(key)}
-            className={`generator-tab ${selectedTab === key ? 'generator-tab-active' : 'generator-tab-idle'}`}
-          >
-            <Icon size={16} />
-            {label}
-          </button>
-        ))}
-      </div>
+    <div className="grid gap-5">
+      <Tabs items={GENERATOR_TABS} active={selectedTab} onChange={setActiveTab} />
 
       {selectedTab === 'play' ? (
         <LotterySimulator
@@ -109,7 +87,7 @@ export function GeneratorPage({
       ) : null}
 
       {selectedTab === 'analyze' ? (
-        <div className="max-w-3xl">
+        <div className="grid max-w-4xl">
           <NumberCalculator
             game={game}
             gameLabel={gameLabel}
@@ -125,42 +103,6 @@ export function GeneratorPage({
             historyDraws={stats?.draws || 0}
             onViewDetails={openAnalysis}
           />
-        </div>
-      ) : null}
-
-
-      {selectedTab === 'numbers' ? (
-        <NumberAnalysisPage game={game} gameLabel={gameLabel} />
-      ) : null}
-
-      {selectedTab === 'signals' ? (
-        <div className="grid gap-5 lg:grid-cols-3">
-          <Panel title="Panou semnale" icon={BarChart3} bodyClassName="p-4">
-            <div className="grid gap-4">
-              <div>
-                <div className="mb-2 text-xs font-black uppercase tracking-wide text-muted">Numere calde</div>
-                <div className="flex flex-wrap gap-2">
-                  {(stats?.hot || []).slice(0, 8).map((item) => <NumberPill key={item.number} value={item.number} tone="hot" size="sm" />)}
-                </div>
-              </div>
-              <div>
-                <div className="mb-2 text-xs font-black uppercase tracking-wide text-muted">Numere reci</div>
-                <div className="flex flex-wrap gap-2">
-                  {(stats?.cold || []).slice(0, 8).map((item) => <NumberPill key={item.number} value={item.number} tone="cold" size="sm" />)}
-                </div>
-              </div>
-              <div>
-                <div className="mb-2 text-xs font-black uppercase tracking-wide text-muted">Întârziate</div>
-                {stats ? <OverdueList items={stats.overdue?.slice(0, 5)} /> : <LoadingBlock rows={5} />}
-              </div>
-            </div>
-          </Panel>
-          <Panel title="Frecvență caldă" icon={Activity} bodyClassName="p-4">
-            {stats ? <FrequencyBars items={stats.hot} tone="hot" /> : <LoadingBlock />}
-          </Panel>
-          <Panel title="Frecvență rece" icon={BarChart3} bodyClassName="p-4">
-            {stats ? <FrequencyBars items={stats.cold} tone="cold" /> : <LoadingBlock />}
-          </Panel>
         </div>
       ) : null}
 

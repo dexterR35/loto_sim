@@ -1,15 +1,20 @@
 import { Activity, Archive, Wand2 } from 'lucide-react';
 import { DrawCard, FrequencyBars, OverdueList } from '../components/lottery';
 import { LoadingBlock, Panel } from '../components/ui';
+import { Loto649Dashboard } from './Loto649Dashboard';
 
-export function DashboardPage({ stats, recentDraws, onViewChange }) {
+export function DashboardPage({ game, stats, recentDraws, onViewChange }) {
+  if (game === '6din49') {
+    return <Loto649Dashboard recentDraws={recentDraws} onViewChange={onViewChange} />;
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="grid gap-5">
       <Panel
         title="Recent draws"
         icon={Archive}
         action={
-          <button type="button" onClick={() => onViewChange('archive')} className="rounded-xl bg-ink px-3 py-2 text-sm font-black text-white hover:bg-slate-800">
+          <button type="button" onClick={() => onViewChange('archive')} className="rounded-full bg-elevated px-4 py-2 text-xs font-bold text-ink hover:text-primary">
             Full history
           </button>
         }

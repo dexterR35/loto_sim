@@ -1,63 +1,19 @@
-const DEFAULT_ROWS = [
-  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-  [21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
-  [31, 32, 33, 34, 35, 36, 37, 38, 39, 40],
-  [41, 42, 43, 44, 45, 46, 47, 48, 49, null]
-];
+const QUICK_PICK = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
-const QUICK_PICK = [
-  [1, 6],
-  [2, 7],
-  [3, 8],
-  [4, 9],
-  [5, 0]
-];
-
-const SIZE_CONFIG = {
-  compact: {
-    cell: 'text-[10px] sm:text-[11px]',
-    label: 'text-sm',
-    gap: 'p-px'
-  },
-  default: {
-    cell: 'text-xs sm:text-sm',
-    label: 'text-lg sm:text-xl',
-    gap: 'p-0.5'
-  },
-  large: {
-    cell: 'text-sm sm:text-base xl:text-lg',
-    label: 'text-xl sm:text-2xl xl:text-3xl',
-    gap: 'p-0.5 sm:p-1'
-  }
+const GRID_COLUMNS = {
+  5: 'grid-cols-5',
+  6: 'grid-cols-6',
+  7: 'grid-cols-7',
+  8: 'grid-cols-8',
+  9: 'grid-cols-9',
+  10: 'grid-cols-10'
 };
 
-function buildGridRows(pool, columns) {
-  const rows = [];
-  let row = [];
-  for (let n = 1; n <= pool; n += 1) {
-    row.push(n);
-    if (row.length === columns) {
-      rows.push(row);
-      row = [];
-    }
-  }
-  if (row.length) {
-    while (row.length < columns) row.push(null);
-    rows.push(row);
-  }
-  return rows;
-}
-
-function GridCell({ className, ...props }) {
-  return (
-    <button
-      type="button"
-      className={`loto-grid-cell aspect-square w-full min-w-0 ${className}`}
-      {...props}
-    />
-  );
-}
+const SIZE_CONFIG = {
+  compact: 'text-[10px] sm:text-xs',
+  default: 'text-[11px] sm:text-sm',
+  large: 'text-xs sm:text-sm xl:text-base'
+};
 
 export function NumberGridPicker({
   label,
@@ -76,97 +32,73 @@ export function NumberGridPicker({
   selectedTone = 'primary'
 }) {
   const size = sizeProp || (compact ? 'compact' : 'default');
-  const config = SIZE_CONFIG[size] || SIZE_CONFIG.default;
-  const rows = pool === 49 && columns === 10 ? DEFAULT_ROWS : buildGridRows(pool, columns);
+  const sizeClass = SIZE_CONFIG[size] || SIZE_CONFIG.default;
+  const columnClass = GRID_COLUMNS[columns] || GRID_COLUMNS[10];
   const selectedSet = new Set(selected);
   const mlHintSet = new Set(mlHints);
+  const selectedClass = selectedTone === 'joker'
+    ? 'border-grape bg-grape text-field'
+    : 'border-primary bg-primary text-field';
 
-  const selectedCellClass =
-    selectedTone === 'joker'
-      ? 'border-2 border-violet-600 bg-gradient-to-b from-violet-600 to-violet-800 text-white shadow-md ring-2 ring-violet-400/25 cursor-pointer hover:brightness-105'
-      : 'border-2 border-primary bg-gradient-to-b from-primary to-primary-dark text-white shadow-md ring-2 ring-primary/20 cursor-pointer hover:brightness-105';
-
-  const cellClass = (num, isSelected) => {
-    const base = config.cell;
-    if (!num) return `${base} border-transparent bg-transparent pointer-events-none`;
-    if (disabled) {
-      if (isSelected) {
-        return `${base} border-2 border-primary bg-primary text-white shadow-md cursor-default`;
-      }
-      return `${base} border-2 border-line/60 bg-field/60 text-muted/80 cursor-not-allowed`;
-    }
-    if (isSelected) return `${base} ${selectedCellClass}`;
-    if (mlHintSet.has(num)) {
-      return `${base} border-2 border-grape bg-grape/15 text-grape shadow-sm ring-2 ring-grape/25 cursor-pointer hover:border-grape hover:bg-grape/25`;
-    }
-    return `${base} border-2 border-slate-200 bg-white text-ink shadow-sm cursor-pointer hover:border-primary hover:bg-primary/5 hover:shadow-md`;
+  const numberClass = (number) => {
+    const isSelected = selectedSet.has(number);
+    if (isSelected) return selectedClass;
+    if (disabled || selected.length >= maxPick) return 'border-line bg-field text-muted/50';
+    if (mlHintSet.has(number)) return 'border-grape/50 bg-grape/10 text-grape hover:bg-grape/20';
+    return 'border-line bg-elevated text-ink hover:border-primary/50 hover:text-primary';
   };
 
-  const quickPickClass = `${config.cell} border-2 border-dashed border-secondary/60 bg-secondary/10 font-black text-secondary shadow-sm hover:border-secondary hover:bg-secondary/20`;
-
   return (
-    <div className="w-full min-w-0">
-      <table className="w-full table-fixed border-collapse text-center">
-        <colgroup>
-          <col className="w-[6%]" />
-          {Array.from({ length: columns }, (_, i) => (
-            <col key={`n-${i}`} className="w-[7%]" />
-          ))}
-          {showQuickPick ? (
-            <>
-              <col className="w-[6%]" />
-              <col className="w-[6%]" />
-            </>
-          ) : null}
-        </colgroup>
-        <tbody>
-          {rows.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {rowIndex === 0 ? (
-                <td rowSpan={rows.length} className={`${config.gap} align-middle font-black text-primary ${config.label}`}>
-                  {label}
-                </td>
-              ) : null}
-              {row.map((num) => (
-                <td key={num ?? `empty-${rowIndex}`} className={config.gap}>
-                  {num ? (
-                    <GridCell
-                      disabled={disabled || (!selectedSet.has(num) && selected.length >= maxPick)}
-                      onClick={() => onToggle(num)}
-                      className={cellClass(num, selectedSet.has(num))}
-                      aria-pressed={selectedSet.has(num)}
-                      title={mlHintSet.has(num) ? 'Sugestie ML' : undefined}
-                      aria-label={`Numărul ${num}`}
-                    >
-                      {num}
-                    </GridCell>
-                  ) : (
-                    <span className={`loto-grid-cell inline-block aspect-square w-full ${cellClass(null)}`} />
-                  )}
-                </td>
-              ))}
-              {showQuickPick
-                ? QUICK_PICK[Math.min(rowIndex, QUICK_PICK.length - 1)].map((qp) => (
-                    <td key={`qp-${rowIndex}-${qp}`} className={config.gap}>
-                      <GridCell
-                        disabled={disabled}
-                        onClick={() => onQuickPick?.(qp)}
-                        className={quickPickClass}
-                        title={qp === 0 ? 'Golește' : `Completează cu ${qp}`}
-                      >
-                        {qp}
-                      </GridCell>
-                    </td>
-                  ))
-                : null}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="grid w-full min-w-0 gap-3">
+      <header className="grid grid-cols-[1fr_auto] items-center gap-3">
+        <span className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Combination {label}</span>
+        <span className="rounded-full bg-elevated px-3 py-1 text-[10px] font-bold text-muted">{selected.length}/{maxPick}</span>
+      </header>
+
+      <div className={`grid ${columnClass} gap-1 sm:gap-1.5`}>
+        {Array.from({ length: pool }, (_, index) => index + 1).map((number) => {
+          const isSelected = selectedSet.has(number);
+          const atLimit = !isSelected && selected.length >= maxPick;
+          return (
+            <button
+              key={number}
+              type="button"
+              disabled={disabled || atLimit}
+              onClick={() => onToggle(number)}
+              className={`aspect-square min-w-0 rounded-full border font-bold tabular-nums transition-colors disabled:cursor-not-allowed ${sizeClass} ${numberClass(number)}`}
+              aria-pressed={isSelected}
+              title={mlHintSet.has(number) ? 'ML suggestion' : undefined}
+              aria-label={`Number ${number}`}
+            >
+              {number}
+            </button>
+          );
+        })}
+      </div>
+
+      {showQuickPick ? (
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-t border-line pt-3">
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">Quick fill</span>
+          <div className="grid grid-cols-10 gap-1">
+            {QUICK_PICK.map((count) => (
+              <button
+                key={count}
+                type="button"
+                disabled={disabled}
+                onClick={() => onQuickPick?.(count)}
+                className="aspect-square rounded-full border border-dashed border-primary/35 bg-primary/5 text-[10px] font-bold text-primary transition-colors hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-40"
+                title={count === 0 ? 'Clear' : `Fill with ${count}`}
+              >
+                {count === 0 ? '×' : count}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {minPick > 0 ? (
-        <p className="mt-2 text-center text-xs font-semibold text-muted">
-          {selected.length}/{minPick}+ selectate
-          {selected.length >= minPick ? ' · variantă validă' : ` · mai selectează ${minPick - selected.length}`}
+        <p className="text-center text-xs font-medium text-muted">
+          {selected.length >= minPick ? 'Valid combination' : `Select ${minPick - selected.length} more`}
         </p>
       ) : null}
     </div>

@@ -5,3 +5,6 @@ __pycache__/
 .venv/
 .env
 .DS_Store
+data/lottery/.loto649-history.lock
+data/lottery/reports/loto649/logs/
+.tmp_*.patch

@@ -9,19 +9,22 @@ import json
 import os
 import random
 import re
+import secrets
 import sys
+import threading
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import date, datetime
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi import Body, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data" / "lottery"
@@ -47,7 +50,7 @@ STRATEGIES = {
     "hot": "Hot numbers",
     "cold": "Cold numbers",
     "overdue": "Long-time-not-seen",
-    "monte_carlo": "Monte Carlo simulation",
+    "monte_carlo": "MC ticket generator",
     "ml_sklearn": "scikit-learn gradient boosting",
     "ml_lstm": "LSTM sequence neural network",
 }
@@ -158,11 +161,22 @@ class LotoData:
     def __init__(self, data_dir: Path) -> None:
         self.data_dir = data_dir
         self.history_path = data_dir / "lottery_history.csv"
+        self._refresh_lock = threading.RLock()
+        self._history_signature: tuple[int, int] | None = None
         self.archive_rows, self.flat_rows, self.csv_fields, self.data_source = load_history_data(data_dir)
         self.by_game: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        seen_649: set[tuple[str, tuple[int, ...]]] = set()
         for row in self.archive_rows:
             game = row.get("game")
             if game in GAME_CONFIGS:
+                if game == "6din49":
+                    identity = (
+                        str(row.get("draw_date_iso", "")),
+                        tuple(sorted(as_ints(row.get("drawn_numbers", [])))),
+                    )
+                    if identity in seen_649:
+                        continue
+                    seen_649.add(identity)
                 self.by_game[game].append(row)
         for rows in self.by_game.values():
             rows.sort(key=lambda item: parse_date(item.get("draw_date_iso", "")))
@@ -172,6 +186,38 @@ class LotoData:
         self._vectors: Any | None = None
         self._vectors_error: str | None = None
         self._live_snapshot = self.load_live_snapshot()
+        self._history_signature = self._current_history_signature()
+
+    def _current_history_signature(self) -> tuple[int, int] | None:
+        try:
+            stat = self.history_path.stat()
+        except OSError:
+            return None
+        return stat.st_mtime_ns, stat.st_size
+
+    def refresh_if_history_changed(self, force: bool = False) -> bool:
+        """Reload legacy API caches after an external/scheduled atomic CSV update."""
+        current = self._current_history_signature()
+        if not force and current == self._history_signature:
+            return False
+        with self._refresh_lock:
+            current = self._current_history_signature()
+            if not force and current == self._history_signature:
+                return False
+            fresh = type(self)(self.data_dir)
+            self.archive_rows = fresh.archive_rows
+            self.flat_rows = fresh.flat_rows
+            self.csv_fields = fresh.csv_fields
+            self.data_source = fresh.data_source
+            self.by_game = fresh.by_game
+            self._stats_cache = {}
+            self._ml = None
+            self._ml_error = None
+            self._vectors = None
+            self._vectors_error = None
+            self._live_snapshot = fresh._live_snapshot
+            self._history_signature = fresh._history_signature
+            return True
 
     def ml_status(self) -> dict[str, Any]:
         models_dir = self.data_dir / "ml_models"
@@ -516,10 +562,11 @@ class LotoData:
         by_number_year: dict[int, Counter[int]] = {number: Counter() for number in range(1, pool + 1)}
         by_number_month: dict[int, Counter[int]] = {number: Counter() for number in range(1, pool + 1)}
         last_draw: dict[int, dict[str, Any]] = {}
+        last_seen_index: dict[int, int] = {}
         recent_counts: Counter[int] = Counter()
         recent_rows = rows[-50:] if len(rows) > 50 else rows
 
-        for row in rows:
+        for draw_index, row in enumerate(rows):
             year = int(row.get("year", 0) or 0)
             month = int(row.get("month", 0) or 0)
             numbers = set(as_ints(row.get("drawn_numbers", []))[:pick])
@@ -530,19 +577,26 @@ class LotoData:
                     if month:
                         by_number_month[number][month] += 1
                     last_draw[number] = self.public_draw(row)
+                    last_seen_index[number] = draw_index
 
         for row in recent_rows:
             for number in set(as_ints(row.get("drawn_numbers", []))[:pick]):
                 if 1 <= number <= pool:
                     recent_counts[number] += 1
 
+        latest_index = len(rows) - 1
+        overdue_by = {
+            number: latest_index - last_seen_index[number] if number in last_seen_index else len(rows)
+            for number in range(1, pool + 1)
+        }
+
         max_count = max(count_by.values() or [1])
         max_recent = max(recent_counts.values() or [1])
         max_gap = max(overdue_by.values() or [1])
         years = sorted({int(row.get("year", 0)) for row in rows if row.get("year")})
         month_names = [
-            "ian", "feb", "mar", "apr", "mai", "iun",
-            "iul", "aug", "sep", "oct", "noi", "dec",
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
         ]
 
         numbers = []
@@ -590,6 +644,7 @@ class LotoData:
             "pool": pool,
             "pick": pick,
             "years": years,
+            "latest": stats.get("latest"),
             "numbers": numbers,
             "joker_frequency": stats.get("joker_frequency", []),
         }
@@ -1090,7 +1145,7 @@ class LotoData:
             }
         if strategy == "monte_carlo":
             return {
-                "name": "Monte Carlo archive backtest",
+                "name": "MC ticket-generation archive backtest",
                 "steps": [
                     "Build weighted candidate lines from archive signals",
                     "Bootstrap historical draws to estimate match yield",
@@ -1191,6 +1246,17 @@ class LotoData:
 
 
 DATA = LotoData(DATA_DIR)
+
+
+def reload_primary_data() -> None:
+    """Refresh legacy endpoints after the canonical CSV receives official draws."""
+    DATA.refresh_if_history_changed(force=True)
+
+
+from loto649.service import Loto649Service  # noqa: E402
+
+LOTO649 = Loto649Service(DATA_DIR, reload_callback=reload_primary_data)
+
 
 
 def weighted_choice(items: list[int], weights: dict[int, float], rng: random.Random) -> int:
@@ -1387,6 +1453,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def refresh_history_cache(request, call_next):
+    if request.url.path.startswith("/api/"):
+        await run_in_threadpool(DATA.refresh_if_history_changed)
+    return await call_next(request)
+
 
 @app.exception_handler(ValueError)
 async def value_error_handler(_request, exc: ValueError) -> JSONResponse:
@@ -1405,6 +1477,20 @@ def truthy(value: Any) -> bool:
     if value in (None, ""):
         return False
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def require_loto649_admin(token: str | None) -> None:
+    expected = os.getenv("LOTO649_ADMIN_TOKEN", "").strip()
+    allow_unprotected = os.getenv("LOTO649_ALLOW_UNAUTHENTICATED_ADMIN", "").lower() in {"1", "true", "yes"}
+    if not expected:
+        if allow_unprotected:
+            return
+        raise HTTPException(
+            status_code=503,
+            detail="Loto 6/49 admin jobs are disabled until LOTO649_ADMIN_TOKEN is configured",
+        )
+    if not token or not secrets.compare_digest(token, expected):
+        raise HTTPException(status_code=401, detail="Invalid Loto 6/49 admin token")
 
 
 def numbers_from_any(value: Any, game: str | None = None) -> list[int] | str:
@@ -1556,6 +1642,122 @@ def api_rag_similar_post(payload: dict[str, Any] | None = Body(default=None)) ->
 
 if (DIST_DIR / "assets").exists():
     app.mount("/assets", StaticFiles(directory=DIST_DIR / "assets"), name="assets")
+
+@app.get("/api/649/latest")
+def api_649_latest() -> dict[str, Any]:
+    return LOTO649.latest()
+
+
+@app.get("/api/649/history")
+def api_649_history(
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    year: int | None = None,
+) -> dict[str, Any]:
+    return LOTO649.history(limit=limit, offset=offset, year=year)
+
+
+@app.get("/api/649/statistics")
+def api_649_statistics(
+    compact: bool = True,
+) -> dict[str, Any]:
+    return LOTO649.statistics_summary() if compact else LOTO649.statistical_report()
+
+
+@app.get("/api/649/statistics/numbers")
+def api_649_statistics_numbers() -> dict[str, Any]:
+    return LOTO649.number_statistics()
+
+
+@app.get("/api/649/statistics/numbers/{number}")
+def api_649_statistics_number(number: int) -> dict[str, Any]:
+    return LOTO649.number_detail(number)
+
+
+@app.get("/api/649/statistics/pairs")
+def api_649_statistics_pairs(
+    number: int | None = Query(None, ge=1, le=49),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    sort: str = "deviation",
+) -> dict[str, Any]:
+    return LOTO649.pair_statistics(number=number, limit=limit, offset=offset, sort=sort)
+
+
+@app.get("/api/649/statistics/tests")
+def api_649_statistics_tests() -> dict[str, Any]:
+    return LOTO649.tests()
+
+
+@app.get("/api/649/statistics/compare")
+def api_649_statistics_compare(
+    start_a: date,
+    end_a: date,
+    start_b: date,
+    end_b: date,
+) -> dict[str, Any]:
+    if start_a > end_a or start_b > end_b:
+        raise ValueError("Each period start must be on or before its end")
+    return LOTO649.compare(start_a, end_a, start_b, end_b)
+
+
+@app.get("/api/649/prediction/latest")
+def api_649_prediction_latest() -> dict[str, Any]:
+    prediction = LOTO649.latest_prediction(create_if_missing=False)
+    if prediction is None:
+        raise HTTPException(status_code=404, detail="No Loto 6/49 prediction is available")
+    return prediction
+
+
+@app.get("/api/649/predictions/history")
+def api_649_predictions_history(limit: int = Query(50, ge=1, le=500)) -> dict[str, Any]:
+    return LOTO649.prediction_history(limit)
+
+
+@app.get("/api/649/models")
+def api_649_models() -> dict[str, Any]:
+    return LOTO649.models()
+
+
+@app.get("/api/649/backtest")
+def api_649_backtest() -> dict[str, Any]:
+    return LOTO649.latest_backtest()
+
+
+@app.post("/api/649/update")
+def api_649_update(
+    payload: dict[str, Any] | None = Body(default=None),
+    x_admin_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    require_loto649_admin(x_admin_token)
+    payload = payload or {}
+    return LOTO649.update(
+        dry_run=truthy(payload.get("dry_run")),
+        train=truthy(payload.get("train")) if "train" in payload else None,
+    )
+
+
+@app.post("/api/649/train")
+def api_649_train(x_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    require_loto649_admin(x_admin_token)
+    return LOTO649.train()
+
+
+@app.post("/api/649/backtest")
+def api_649_backtest_post(
+    payload: dict[str, Any] | None = Body(default=None),
+    x_admin_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    require_loto649_admin(x_admin_token)
+    payload = payload or {}
+    report = LOTO649.backtest(
+        refresh=True,
+        maximum_draws=int(payload["draws"]) if payload.get("draws") is not None else None,
+        random_strategies=int(payload["random_strategies"]) if payload.get("random_strategies") is not None else None,
+        seed=int(payload["seed"]) if payload.get("seed") is not None else None,
+    )
+    return LOTO649.backtest_summary(report)
+
 
 
 @app.get("/{request_path:path}", include_in_schema=False)

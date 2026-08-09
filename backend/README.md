@@ -23,6 +23,9 @@ Docker uses the production server by default.
 | `WEB_WORKERS` | `WEB_THREADS` or `1` | Uvicorn worker processes |
 | `PORT` | `8000` | Listen port |
 | `HOST` | `0.0.0.0` | Listen host |
+| `LOTO649_ADMIN_TOKEN` | unset | Enables protected update/train/backtest jobs |
+| `LOTO649_ALLOW_UNAUTHENTICATED_ADMIN` | unset | Explicit local-only bypass for protected jobs |
+| `ALLOW_RUNTIME_TRAINING` | unset | Legacy ML only; keep disabled in normal API processes |
 
 ## Endpoints
 
@@ -45,8 +48,39 @@ ML strategies for `POST /api/generate`:
 - `ml_sklearn` — pandas features + scikit-learn gradient boosting
 - `ml_lstm` — TensorFlow/Keras LSTM on sequential draw history
 
+### Loto 6/49 research API
+
+- `GET /api/649/latest`
+- `GET /api/649/history`
+- `GET /api/649/statistics`
+- `GET /api/649/statistics/numbers`
+- `GET /api/649/statistics/numbers/{number}`
+- `GET /api/649/statistics/pairs`
+- `GET /api/649/statistics/tests`
+- `GET /api/649/statistics/compare`
+- `GET /api/649/prediction/latest`
+- `GET /api/649/predictions/history`
+- `GET /api/649/models`
+- `GET /api/649/backtest` (persisted compact report only)
+- `POST /api/649/update` (admin)
+- `POST /api/649/train` (admin)
+- `POST /api/649/backtest` (admin)
+
+Admin requests use `X-Admin-Token`. The CLI is the preferred scheduled-job interface:
+
+```bash
+.venv/bin/python scripts/loto649_pipeline.py update
+.venv/bin/python scripts/loto649_pipeline.py statistics --simulations 400 --seed 42
+.venv/bin/python scripts/loto649_pipeline.py backtest
+.venv/bin/python scripts/loto649_pipeline.py backtest --cached
+.venv/bin/python scripts/loto649_pipeline.py train
+.venv/bin/python scripts/loto649_pipeline.py models
+```
+
+`result_not_published` and `already_up_to_date` are successful no-op states. `source_error` returns CLI status 2. The service evaluates a matching immutable snapshot before appending its target draw; prediction content and evaluation content are separate artifacts.
+
 Train models manually:
 
 ```bash
-python3 backend/train_lstm.py --game 6din49
+python3 backend/train_lstm.py --game 6din49 --lookback 25 --seed 649
 ```

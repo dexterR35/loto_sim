@@ -8,6 +8,7 @@ probabilities for ticket generation.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import pickle
@@ -98,7 +99,11 @@ class MLEngine:
                 vector[number - 1] = 1.0
         return vector
 
-    def build_lstm_sequences(self, game: str, rows: list[dict[str, Any]]) -> tuple[np.ndarray, np.ndarray]:
+    def build_lstm_sequences(
+        self, game: str, rows: list[dict[str, Any]], lookback: int = LOOKBACK
+    ) -> tuple[np.ndarray, np.ndarray]:
+        if lookback < 1:
+            raise ValueError("lookback must be positive")
         config = self.game_configs[game]
         pool = config["pool"]
         pick = config["pick"]
@@ -109,16 +114,20 @@ class MLEngine:
         matrix = np.stack(vectors)
         sequences: list[np.ndarray] = []
         targets: list[np.ndarray] = []
-        for index in range(LOOKBACK, len(matrix)):
-            sequences.append(matrix[index - LOOKBACK : index])
+        for index in range(lookback, len(matrix)):
+            sequences.append(matrix[index - lookback : index])
             targets.append(matrix[index])
         if not sequences:
-            raise ValueError(f"Need at least {LOOKBACK + 1} draws for LSTM training")
+            raise ValueError(f"Need at least {lookback + 1} draws for LSTM training")
         return np.stack(sequences), np.stack(targets)
 
-    def build_noroc_lstm_sequences(self, rows: list[dict[str, Any]]) -> tuple[np.ndarray, np.ndarray]:
+    def build_noroc_lstm_sequences(
+        self, rows: list[dict[str, Any]], lookback: int = LOOKBACK
+    ) -> tuple[np.ndarray, np.ndarray]:
         import re
 
+        if lookback < 1:
+            raise ValueError("lookback must be positive")
         draws: list[np.ndarray] = []
         for row in rows:
             code = "".join(str(value) for value in row.get("drawn_numbers", []))
@@ -130,11 +139,11 @@ class MLEngine:
         matrix = np.stack(draws)
         sequences: list[np.ndarray] = []
         targets: list[np.ndarray] = []
-        for index in range(LOOKBACK, len(matrix)):
-            sequences.append(matrix[index - LOOKBACK : index])
+        for index in range(lookback, len(matrix)):
+            sequences.append(matrix[index - lookback : index])
             targets.append(matrix[index])
         if not sequences:
-            raise ValueError(f"Need at least {LOOKBACK + 1} Noroc draws for LSTM training")
+            raise ValueError(f"Need at least {lookback + 1} Noroc draws for LSTM training")
         return np.stack(sequences), np.stack(targets)
 
     def build_number_dataset(self, game: str, rows: list[dict[str, Any]]) -> tuple[pd.DataFrame, pd.Series]:
@@ -303,20 +312,41 @@ class MLEngine:
         self._cache[f"{game}:sklearn"] = payload
         return payload
 
-    def train_lstm(self, game: str, rows: list[dict[str, Any]], epochs: int = 30) -> dict[str, Any]:
+    def train_lstm(
+        self,
+        game: str,
+        rows: list[dict[str, Any]],
+        epochs: int = 30,
+        lookback: int = LOOKBACK,
+        seed: int = 649,
+    ) -> dict[str, Any]:
         if not TF_AVAILABLE:
             raise RuntimeError("TensorFlow is not installed")
+        if lookback not in {10, 15, 25, 50, 100}:
+            raise ValueError("lookback must be one of 10, 15, 25, 50, or 100")
+        if epochs < 1:
+            raise ValueError("epochs must be positive")
+
+        random.seed(seed)
+        np.random.seed(seed)
+        tf.keras.utils.set_random_seed(seed)
+        try:
+            tf.config.experimental.enable_op_determinism()
+        except (AttributeError, RuntimeError):
+            pass
 
         if game == "noroc":
-            x, y = self.build_noroc_lstm_sequences(rows)
+            x, y = self.build_noroc_lstm_sequences(rows, lookback=lookback)
             output_size = 70
         else:
-            x, y = self.build_lstm_sequences(game, rows)
+            x, y = self.build_lstm_sequences(game, rows, lookback=lookback)
             output_size = self.game_configs[game]["pool"]
 
+        if len(x) < 10:
+            raise ValueError("Need at least 10 sequences for a chronological train/validation split")
         x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=42, shuffle=False)
         model = keras.Sequential([
-            keras.layers.Input(shape=(LOOKBACK, x.shape[2])),
+            keras.layers.Input(shape=(lookback, x.shape[2])),
             keras.layers.LSTM(128, return_sequences=True),
             keras.layers.Dropout(0.2),
             keras.layers.LSTM(64),
@@ -351,16 +381,38 @@ class MLEngine:
 
         model_path = self.models_dir / f"{game}_lstm.keras"
         model.save(model_path)
+        training_rows = [
+            {
+                "date": str(row.get("draw_date_iso", "")),
+                "numbers": as_ints(row.get("drawn_numbers", [])),
+            }
+            for row in rows
+        ]
+        dataset_hash = hashlib.sha256(
+            json.dumps(training_rows, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        training_end_date = max(
+            (str(row.get("draw_date_iso", "")) for row in rows),
+            default="",
+        )
         meta = {
             "game": game,
             "model_type": "lstm",
-            "lookback": LOOKBACK,
+            "artifact_schema_version": 2,
+            "feature_version": "multi_hot_sequence_v2",
+            "lookback": lookback,
             "output_size": output_size,
+            "seed": seed,
+            "dataset_hash": dataset_hash,
+            "training_end_date": training_end_date,
+            "leakage_audit": "chronological split; every target uses only preceding draws",
             "metrics": {
                 "val_auc": round(val_auc, 4),
                 "val_loss": round(val_loss, 4),
-                "train_sequences": len(x),
+                "train_sequences": len(x_train),
+                "validation_sequences": len(x_val),
                 "epochs": epochs,
+                "split": "chronological_80_20",
             },
             "chart_path": chart_path,
             "model_path": str(model_path),
@@ -427,9 +479,10 @@ class MLEngine:
             self.draw_to_vector(as_ints(row.get("drawn_numbers", []))[:pick], pool)
             for row in rows
         ]
-        if len(vectors) < LOOKBACK:
-            raise ValueError(f"Need at least {LOOKBACK} draws for LSTM prediction")
-        sequence = np.stack(vectors[-LOOKBACK:])[np.newaxis, ...]
+        lookback = int(payload.get("lookback", LOOKBACK))
+        if len(vectors) < lookback:
+            raise ValueError(f"Need at least {lookback} draws for LSTM prediction")
+        sequence = np.stack(vectors[-lookback:])[np.newaxis, ...]
         probs = model.predict(sequence, verbose=0).reshape(-1)
         return {number: float(max(probs[number - 1], 0.001)) for number in range(1, pool + 1)}
 
@@ -446,9 +499,10 @@ class MLEngine:
             for position, digit in enumerate(code):
                 vector[position * 10 + int(digit)] = 1.0
             draws.append(vector)
-        if len(draws) < LOOKBACK:
-            raise ValueError(f"Need at least {LOOKBACK} Noroc draws for LSTM prediction")
-        sequence = np.stack(draws[-LOOKBACK:])[np.newaxis, ...]
+        lookback = int(payload.get("lookback", LOOKBACK))
+        if len(draws) < lookback:
+            raise ValueError(f"Need at least {lookback} Noroc draws for LSTM prediction")
+        sequence = np.stack(draws[-lookback:])[np.newaxis, ...]
         probs = model.predict(sequence, verbose=0).reshape(-1)
         flat_weights: dict[int, float] = {}
         for position in range(7):
@@ -675,7 +729,7 @@ class MLEngine:
         algorithm_name = "LSTM sequence model" if model_type == "lstm" else f"Machine learning ({model_type})"
         feature_list = (
             [
-                f"last {LOOKBACK} draws encoded as multi-hot sequences",
+                f"last {payload.get('lookback', LOOKBACK)} draws encoded as multi-hot sequences",
                 "stacked LSTM layers (128 → 64 units)",
                 "sigmoid output per number probability",
             ]
@@ -695,7 +749,7 @@ class MLEngine:
                 "metrics": payload.get("metrics", {}),
                 "features": feature_list,
                 "chart_path": payload.get("chart_path"),
-                "lookback": LOOKBACK if model_type == "lstm" else None,
+                "lookback": payload.get("lookback", LOOKBACK) if model_type == "lstm" else None,
             },
             "top_probabilities": sorted(
                 [{"number": number, "probability": round(weight, 4)} for number, weight in weights.items()],
@@ -761,7 +815,7 @@ class MLEngine:
                 "model_type": model_type,
                 "metrics": payload.get("metrics", {}),
                 "chart_path": payload.get("chart_path"),
-                "lookback": LOOKBACK if model_type == "lstm" else None,
+                "lookback": payload.get("lookback", LOOKBACK) if model_type == "lstm" else None,
             },
             "top_probabilities": [],
         }
@@ -796,7 +850,11 @@ class MLEngine:
             try:
                 lstm_payload = self.ensure_model(game, "lstm", rows)
                 lstm_weights = self.predict_number_weights(game, rows, "lstm")
-                lstm_meta = {"status": "ready", "metrics": lstm_payload.get("metrics", {})}
+                lstm_meta = {
+                    "status": "ready",
+                    "metrics": lstm_payload.get("metrics", {}),
+                    "lookback": lstm_payload.get("lookback", LOOKBACK),
+                }
             except Exception as exc:
                 lstm_meta = {"status": "error", "error": str(exc)}
         else:
@@ -846,7 +904,7 @@ class MLEngine:
             "game": game,
             "label": config["label"],
             "draws": len(rows),
-            "lookback": LOOKBACK,
+            "lookback": lstm_meta.get("lookback", LOOKBACK),
             "device": TF_DEVICE or "CPU",
             "models": {
                 "sklearn": sklearn_meta,
@@ -858,7 +916,7 @@ class MLEngine:
                 "pair co-occurrence with previous draw",
                 "calendar month & weekday",
                 "number profile (odd / decade)",
-                "LSTM: last 15 draws as multi-hot sequences",
+                "LSTM: artifact-defined chronological multi-hot sequence",
             ],
             "training_note": "sklearn uses temporal train/test split by draw date (no future leakage)",
             "predictions": predictions,

@@ -26,6 +26,7 @@ COPY backend/requirements.txt ./backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
 COPY backend ./backend
+COPY config ./config
 COPY scripts ./scripts
 COPY lottery_scraper.py ./
 COPY data ./data

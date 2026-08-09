@@ -4,6 +4,7 @@ import {
   BarChart3,
   BrainCircuit,
   Cpu,
+  FlaskConical,
   Gauge,
   History,
   LayoutDashboard,
@@ -23,13 +24,14 @@ export const STRATEGIES = [
   { key: 'hot', label: 'Hot', icon: Activity, description: 'Favors numbers drawn most often in the archive.' },
   { key: 'cold', label: 'Cold', icon: BarChart3, description: 'Targets numbers that appear least frequently.' },
   { key: 'overdue', label: 'Overdue', icon: Target, description: 'Prioritizes numbers absent for many draws.' },
-  { key: 'monte_carlo', label: 'Monte Carlo', icon: BrainCircuit, description: 'Simulates thousands of draws to score picks.' },
+  { key: 'monte_carlo', label: 'MC Ticket Generator', icon: BrainCircuit, description: 'Generates archive-weighted tickets through repeated ticket simulations.' },
   { key: 'ml_sklearn', label: 'ML (sklearn)', icon: Cpu, description: 'Gradient boosting on rolling frequency features.' },
   { key: 'ml_lstm', label: 'ML (LSTM)', icon: Network, description: 'LSTM trained on sequential draw history to predict numbers.' }
 ];
 
 export const VIEWS = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { key: 'statistics', label: '6/49 Statistical Lab', icon: FlaskConical },
   { key: 'archive', label: 'Archive history', icon: History },
   { key: 'generator', label: 'Generator', icon: Wand2 }
 ];

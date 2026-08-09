@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './lib/api';
 import { GAMES } from './lib/constants';
 import { applyGameTheme } from './lib/gameTheme';
-import { buildAppPath, parseAppRoute } from './lib/routes';
+import { buildAppPath, normalizeStatisticsTab, parseAppRoute } from './lib/routes';
 import { isAbortError } from './lib/generation';
 import { PageHeader, Sidebar } from './components/layout';
 import { ArchivePage } from './pages/ArchivePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneratorPage } from './pages/GeneratorPage';
+import { Loto649LabPage } from './pages/Loto649LabPage';
 
 const DEFAULT_SIMULATIONS = 900;
 
@@ -30,27 +31,28 @@ export default function App() {
   const [manualNumbers, setManualNumbers] = useState('1, 2, 3, 4, 5, 6');
   const [manualJoker, setManualJoker] = useState('7');
   const [generateMeta, setGenerateMeta] = useState(null);
-  const [generatorTab, setGeneratorTab] = useState(() => initialRouteRef.current.tab);
+  const [generatorTab, setGeneratorTab] = useState(() => initialRouteRef.current.view === 'generator' ? initialRouteRef.current.tab : 'play');
+  const [statisticsTab, setStatisticsTab] = useState(() => initialRouteRef.current.view === 'statistics' ? initialRouteRef.current.tab : 'inference');
   const [loading, setLoading] = useState(false);
   const [calcLoading, setCalcLoading] = useState(false);
   const [mlData, setMlData] = useState(null);
   const [error, setError] = useState('');
 
   const generateAbortRef = useRef(null);
-  const routeStateRef = useRef({ view: initialRouteRef.current.view, game: initialRouteRef.current.game, tab: initialRouteRef.current.tab });
+  const routeStateRef = useRef({ view: initialRouteRef.current.view, game: initialRouteRef.current.game });
   const historyLimit = 60;
   const gameLabel = useMemo(() => GAMES.find((item) => item.key === game)?.full, [game]);
 
   useEffect(() => {
-    routeStateRef.current = { view: activeView, game, tab: generatorTab };
-  }, [activeView, game, generatorTab]);
+    routeStateRef.current = { view: activeView, game };
+  }, [activeView, game]);
 
-  const syncBrowserRoute = useCallback((view, gameKey, tab = generatorTab, replace = false) => {
+  const syncBrowserRoute = useCallback((view, gameKey, tab, replace = false) => {
     if (typeof window === 'undefined') return;
     const nextPath = buildAppPath(view, gameKey, tab);
     if (window.location.pathname === nextPath) return;
     window.history[replace ? 'replaceState' : 'pushState']({}, '', nextPath);
-  }, [generatorTab]);
+  }, []);
 
   const cancelGenerate = useCallback(() => {
     generateAbortRef.current?.abort();
@@ -132,12 +134,18 @@ export default function App() {
     setStrategy(next);
   }, [cancelGenerate, loading, resetGenerationState, strategy]);
 
-  const changeView = useCallback((nextView) => {
-    if (nextView === activeView) return;
+  const changeView = useCallback((nextView, nextTab) => {
+    const viewTab = nextView === 'generator'
+      ? generatorTab
+      : nextView === 'statistics'
+        ? normalizeStatisticsTab(nextTab || statisticsTab)
+        : null;
+    if (nextView === activeView && (nextView !== 'statistics' || viewTab === statisticsTab)) return;
     cancelGenerate();
+    if (nextView === 'statistics') setStatisticsTab(viewTab);
     setActiveView(nextView);
-    syncBrowserRoute(nextView, game, generatorTab);
-  }, [activeView, cancelGenerate, game, generatorTab, syncBrowserRoute]);
+    syncBrowserRoute(nextView, game, viewTab);
+  }, [activeView, cancelGenerate, game, generatorTab, statisticsTab, syncBrowserRoute]);
 
   const changeGeneratorTab = useCallback((nextTab) => {
     if (nextTab === generatorTab && activeView === 'generator') return;
@@ -146,6 +154,15 @@ export default function App() {
     setGeneratorTab(nextTab);
     syncBrowserRoute('generator', game, nextTab);
   }, [activeView, cancelGenerate, game, generatorTab, syncBrowserRoute]);
+
+  const changeStatisticsTab = useCallback((nextTab) => {
+    const normalized = normalizeStatisticsTab(nextTab);
+    if (normalized === statisticsTab && activeView === 'statistics') return;
+    cancelGenerate();
+    setActiveView('statistics');
+    setStatisticsTab(normalized);
+    syncBrowserRoute('statistics', game, normalized);
+  }, [activeView, cancelGenerate, game, statisticsTab, syncBrowserRoute]);
 
   const changeGame = useCallback((nextGame) => {
     if (loading || nextGame === game) return;
@@ -156,8 +173,9 @@ export default function App() {
     setTicketCount(1);
     setHistoryOffset(0);
     setHistoryYear('');
-    syncBrowserRoute(activeView, nextGame, generatorTab);
-  }, [activeView, cancelGenerate, game, generatorTab, loading, resetGenerationState, syncBrowserRoute]);
+    const activeTab = activeView === 'generator' ? generatorTab : activeView === 'statistics' ? statisticsTab : null;
+    syncBrowserRoute(activeView, nextGame, activeTab);
+  }, [activeView, cancelGenerate, game, generatorTab, loading, resetGenerationState, statisticsTab, syncBrowserRoute]);
 
   const changeTicketCount = useCallback((next) => {
     if (loading) return;
@@ -176,7 +194,8 @@ export default function App() {
       const previous = routeStateRef.current;
       cancelGenerate();
       setActiveView(nextRoute.view);
-      setGeneratorTab(nextRoute.tab);
+      if (nextRoute.view === 'generator') setGeneratorTab(nextRoute.tab);
+      if (nextRoute.view === 'statistics') setStatisticsTab(nextRoute.tab);
       if (previous.game !== nextRoute.game) {
         resetGenerationState();
         setAnalysis(null);
@@ -188,10 +207,11 @@ export default function App() {
       setGame(nextRoute.game);
     };
 
-    syncBrowserRoute(activeView, game, generatorTab, true);
+    const activeTab = activeView === 'generator' ? generatorTab : activeView === 'statistics' ? statisticsTab : null;
+    syncBrowserRoute(activeView, game, activeTab, true);
     window.addEventListener('popstate', applyRoute);
     return () => window.removeEventListener('popstate', applyRoute);
-  }, [activeView, cancelGenerate, game, generatorTab, resetGenerationState, syncBrowserRoute]);
+  }, [activeView, cancelGenerate, game, generatorTab, resetGenerationState, statisticsTab, syncBrowserRoute]);
 
   useEffect(() => {
     applyGameTheme(game);
@@ -317,8 +337,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-field text-ink lg:grid lg:grid-cols-[13rem_minmax(0,1fr)]" data-game={game}>
-      {mobileNavOpen ? <div className="fixed inset-0 z-40 bg-ink/30 lg:hidden" onClick={() => setMobileNavOpen(false)} /> : null}
+    <div className="grid min-h-svh grid-cols-1 bg-field text-ink lg:grid-cols-[15rem_minmax(0,1fr)]" data-game={game}>
+      {mobileNavOpen ? <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden" onClick={() => setMobileNavOpen(false)} /> : null}
       <Sidebar
         activeView={activeView}
         onViewChange={changeView}
@@ -333,22 +353,31 @@ export default function App() {
           onMenu={() => setMobileNavOpen(true)}
           game={game}
           onGameChange={changeGame}
-          gameLabel={gameLabel}
           loading={loading}
         />
-        <main className="px-4 py-5 lg:px-6">
+        <main className="mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-5 sm:py-6 lg:px-7">
           {error ? (
-            <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-bold text-primary">
+            <div className="mb-5 grid grid-cols-[1fr_auto] items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-sm font-bold text-primary">
               <span>{error}</span>
-              <button type="button" onClick={() => setError('')} className="rounded-md px-2 py-1 hover:bg-white">Dismiss</button>
+              <button type="button" onClick={() => setError('')} className="rounded-full bg-elevated px-3 py-1.5 text-xs hover:text-ink">Dismiss</button>
             </div>
           ) : null}
 
           {activeView === 'dashboard' ? (
             <DashboardPage
+              game={game}
               stats={stats}
               recentDraws={recentDraws}
               onViewChange={changeView}
+            />
+          ) : null}
+
+          {activeView === 'statistics' ? (
+            <Loto649LabPage
+              game={game}
+              onGameChange={changeGame}
+              activeTab={statisticsTab}
+              onTabChange={changeStatisticsTab}
             />
           ) : null}
 

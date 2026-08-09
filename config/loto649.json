@@ -1,0 +1,67 @@
+{
+  "game": {
+    "key": "6din49",
+    "name": "Loto 6/49",
+    "numbers": 49,
+    "draw_size": 6,
+    "draw_weekdays": [3, 6]
+  },
+  "source": {
+    "url": "https://www.loto.ro/loto-new/newLotoSiteNexioFinalVersion/web/app2.php/jocuri/649_si_noroc/rezultate_extragere.html",
+    "timeout_seconds": 25,
+    "retries": 3,
+    "backoff_seconds": 1.5
+  },
+  "statistics": {
+    "alpha": 0.05,
+    "fdr_alpha": 0.05,
+    "min_pair_support": 5,
+    "min_triple_support": 4,
+    "monte_carlo_runs": 400,
+    "monte_carlo_max_runs": 10000,
+    "rolling_windows": [10, 25, 50, 100, 250, 500],
+    "random_seed": 42
+  },
+  "features": {
+    "version": "649-features-v2",
+    "minimum_history": 100,
+    "ewma_span": 25
+  },
+  "ml": {
+    "enabled": true,
+    "random_seed": 42,
+    "training_draw_limit": 700,
+    "validation_draws": 120,
+    "pytorch_enabled": false,
+    "lstm_lookbacks": [10, 25, 50, 100]
+  },
+  "training": {
+    "retrain_after_new_draw": true,
+    "minimum_new_draws_for_full_retrain": 1,
+    "promotion_requires_backtest": true,
+    "keep_previous_champion": true,
+    "minimum_ndcg_improvement": 0.002,
+    "maximum_brier_degradation": 0.002,
+    "maximum_random_empirical_p_value": 0.05,
+    "maximum_period_ndcg_regression": 0.02
+  },
+  "prediction": {
+    "version": "649-ensemble-v3",
+    "top_k": [6, 10, 15],
+    "save_snapshot": true,
+    "seed": 42,
+    "weights": {
+      "statistics": 0.3,
+      "sklearn": 0.3,
+      "lstm": 0.15,
+      "pytorch": 0.1,
+      "monte_carlo": 0.15
+    }
+  },
+  "backtest": {
+    "minimum_history": 250,
+    "draws": 180,
+    "random_strategies": 1000,
+    "seed": 42
+  }
+}

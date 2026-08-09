@@ -2,6 +2,8 @@
 
 A Vite + React + Tailwind app with a FastAPI backend for exploring Romanian lottery archives and generating ticket lines with statistical, ML, and local RAG methods.
 
+The interface uses Tailwind CSS 4 through the Vite plugin. Its CSS-first theme lives in `src/styles.css`; there is no PostCSS configuration or legacy Tailwind config file.
+
 ## How it works
 
 1. **Extract** — historical draw rows from 1993-2026 are normalized into one CSV.
@@ -11,11 +13,27 @@ A Vite + React + Tailwind app with a FastAPI backend for exploring Romanian lott
 
 The app uses local data in `data/lottery/`:
 
-- `lottery_history.csv`: standalone 9,354-row history table with 141 columns.
+- `lottery_history.csv`: standalone 9,361-row history table with 141 columns.
 - `ml_models/` / `ml_charts/`: trained LSTM/sklearn models and training charts.
 - `vectors/`: local numpy vector indexes for RAG-style similarity search.
+- `loto649_draw_metadata.jsonl`: fetch/source provenance for official 6/49 appends.
+- `reports/loto649/`: versioned statistical, prediction, evaluation, and backtest artifacts.
+- `model_registry/loto649/`: Champion/Challenger records and immutable status events.
 
-Statistical strategies (hot/cold/overdue/Monte Carlo) are also available. Lottery draws are random; models analyze history for exploration, not guaranteed prediction.
+Ticket-generation strategies (hot/cold/overdue/MC ticket generation) are also available. The separate uniform-draw simulation in the Statistical Lab tests whether archive anomalies are unusual; it does not generate tickets. Lottery draws are random, and model rankings are research experiments rather than guaranteed predictions.
+
+The Loto 6/49 upgrade adds automatic official catch-up, rigorous inference/FDR, exact-mechanism null simulation, leakage-safe temporal features, immutable predictions, a model registry, walk-forward comparisons, and a 49-number explorer. See [the implementation and measured results](docs/STATISTICAL_UPGRADE_IMPLEMENTATION.md).
+
+The current measured result is intentionally conservative: no complex model passes the complete production gate.
+
+## UI map
+
+- **Dashboard** is a compact status page: latest official draw, research verdict, next scheduled check, and the current experimental Top 6.
+- **Generator** has two jobs only: create ticket lines and analyze a combination entered by the user.
+- **6/49 Statistical Lab** is the single detailed workspace for inference, the 49-number explorer, number relationships, prediction/model explanations, and walk-forward backtesting.
+- **Archive history** is the source-level draw browser.
+
+The three simulation contexts are labeled separately in the UI: MC ticket generation creates candidate lines, uniform-draw null simulation tests archive anomalies, and random backtest baselines compare out-of-sample strategy performance.
 
 ## Setup
 
@@ -67,13 +85,37 @@ docker compose exec app python backend/train_lstm.py --all
 
 The `data/lottery` folder is bind-mounted so CSV data and trained models persist on the host.
 
+## Loto 6/49 pipeline
+
+```bash
+npm run loto649:update
+npm run loto649:stats
+npm run loto649:backtest
+.venv/bin/python scripts/loto649_pipeline.py backtest --cached
+npm run loto649:train
+npm run test:backend
+```
+
+Expensive API jobs are disabled until an admin token is configured:
+
+```bash
+export LOTO649_ADMIN_TOKEN='replace-with-a-long-random-secret'
+curl -X POST http://127.0.0.1:8000/api/649/backtest \
+  -H "X-Admin-Token: $LOTO649_ADMIN_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"draws":180,"random_strategies":1000,"seed":42}'
+```
+
+Read endpoints never fetch the official website. Scheduled/CLI updates populate the persistent cache.
+
 ## Train LSTM models
 
 ```bash
 source .venv/bin/activate
-python3 backend/train_lstm.py --game 6din49 --epochs 30
+python3 backend/train_lstm.py --game 6din49 --epochs 30 --lookback 25 --seed 649
 python3 backend/train_lstm.py --all
 ```
+LSTM artifacts are experimental and are not promotion-eligible without the common temporal backtest evidence.
 
 ## Rebuild CSV From A Fresh Scrape
 

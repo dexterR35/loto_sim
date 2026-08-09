@@ -1,0 +1,4 @@
+{"event": "model_registered", "model_id": "sk-49f3db46b8a76d7f4b", "status": "candidate", "timestamp": "2026-08-08T23:34:44+00:00"}
+{"event": "model_status_changed", "model_id": "sk-49f3db46b8a76d7f4b", "reason": "Promoted after leakage audit and held-out temporal validation (NDCG@10 gain 0.035528)", "status": "production", "timestamp": "2026-08-08T23:34:45+00:00"}
+{"event": "model_status_changed", "model_id": "sk-49f3db46b8a76d7f4b", "reason": "Demoted after independent 180-draw frozen-range backtest: empirical random-strategy p=0.05994006 exceeded the 0.05 promotion gate.", "status": "rejected", "timestamp": "2026-08-08T23:38:28+00:00"}
+{"event": "model_metadata_updated", "model_id": "sk-49f3db46b8a76d7f4b", "timestamp": "2026-08-08T23:58:50+00:00", "updated_fields": ["feature_coefficients", "refit_through_date", "training_end_date", "validation_training_end_date"]}

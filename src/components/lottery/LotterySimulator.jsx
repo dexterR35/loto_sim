@@ -28,13 +28,13 @@ function GenericGamePlay({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3 shadow-sm">
+      <header className="grid gap-4 rounded-2xl border border-line bg-surface px-5 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
         <div>
           <div className="text-sm font-black text-ink">{gameLabel}</div>
           <p className="text-xs text-muted">
             {config.jokerPool
-              ? `${config.pick} numere + Joker (1–${config.jokerPool})`
-              : `${config.pick} numere din ${config.pool}`}
+              ? `${config.pick} numbers + Joker (1–${config.jokerPool})`
+              : `${config.pick} numbers from ${config.pool}`}
             {algorithm ? ` · ${algorithm}` : ''}
           </p>
         </div>
@@ -43,30 +43,30 @@ function GenericGamePlay({
             type="button"
             onClick={onClearTickets}
             disabled={!tickets.length || loading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-field px-3 py-2 text-xs font-black text-ink hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full bg-elevated px-4 py-2 text-xs font-bold text-ink hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <Eraser size={14} /> Șterge
+            <Eraser size={14} /> Clear
           </button>
           {loading ? (
             <button
               type="button"
               onClick={cancelGenerate}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-4 py-2 text-xs font-black text-ink hover:border-primary hover:text-primary"
+              className="inline-flex items-center gap-1.5 rounded-full bg-elevated px-4 py-2 text-xs font-bold text-ink hover:text-primary"
             >
-              <Square size={14} /> Oprește
+              <Square size={14} /> Stop
             </button>
           ) : null}
           <button
             type="button"
             onClick={handleGenerate}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-field hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-40"
           >
             {loading ? <Loader2 className="animate-spin" size={14} /> : <Shuffle size={14} />}
-            Generează {ticketCount}
+            Generate {ticketCount}
           </button>
         </div>
-      </div>
+      </header>
 
       <StrategyTicketControls
         strategies={STRATEGIES}
@@ -78,16 +78,15 @@ function GenericGamePlay({
       />
 
       <Panel
-        title="Bilete generate"
+        title="Generated tickets"
         icon={Shuffle}
-        bodyClassName="p-4"
-        action={<Badge tone="primary">{tickets.length} bilete</Badge>}
+        action={<Badge tone="primary">{tickets.length} tickets</Badge>}
       >
         <TicketGrid
           tickets={tickets}
           game={game}
           onAnalyze={onAnalyzeTicket}
-          emptyLabel="Alege strategia și apasă Generează pentru linii clasificate din arhivă."
+          emptyLabel="Choose a strategy and select Generate to create archive-ranked lines."
         />
       </Panel>
     </>
@@ -118,7 +117,7 @@ export function LotterySimulator({
   const gameLabel = GAMES.find((item) => item.key === game)?.full || 'Simulator';
 
   return (
-    <div className="w-full space-y-4">
+    <div className="grid w-full gap-4">
       {config.hasSlipUI ? (
         <Loto649Simulator
           game={game}

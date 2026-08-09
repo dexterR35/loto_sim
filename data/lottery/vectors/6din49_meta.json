@@ -15012,12 +15012,12 @@
     "draw_date_raw": "Vi, 30 decembrie 2011",
     "draw_date_iso": "2011-12-30",
     "drawn_numbers": [
-      20,
-      28,
-      38,
-      15,
-      48,
-      37
+      17,
+      43,
+      37,
+      40,
+      29,
+      16
     ],
     "year": 2011
   },
@@ -15026,12 +15026,12 @@
     "draw_date_raw": "Vi, 30 decembrie 2011",
     "draw_date_iso": "2011-12-30",
     "drawn_numbers": [
-      17,
-      43,
-      37,
-      40,
-      29,
-      16
+      20,
+      28,
+      38,
+      15,
+      48,
+      37
     ],
     "year": 2011
   },
@@ -15432,12 +15432,12 @@
     "draw_date_raw": "Du, 15 aprilie 2012",
     "draw_date_iso": "2012-04-15",
     "drawn_numbers": [
-      39,
-      5,
-      46,
-      18,
-      32,
-      37
+      38,
+      29,
+      16,
+      8,
+      28,
+      36
     ],
     "year": 2012
   },
@@ -15446,12 +15446,12 @@
     "draw_date_raw": "Du, 15 aprilie 2012",
     "draw_date_iso": "2012-04-15",
     "drawn_numbers": [
-      38,
-      29,
-      16,
-      8,
-      28,
-      36
+      39,
+      5,
+      46,
+      18,
+      32,
+      37
     ],
     "year": 2012
   },
@@ -16958,12 +16958,12 @@
     "draw_date_raw": "Du, 5 mai 2013",
     "draw_date_iso": "2013-05-05",
     "drawn_numbers": [
-      6,
-      48,
-      34,
-      12,
-      22,
-      38
+      41,
+      2,
+      27,
+      28,
+      30,
+      42
     ],
     "year": 2013
   },
@@ -16972,12 +16972,12 @@
     "draw_date_raw": "Du, 5 mai 2013",
     "draw_date_iso": "2013-05-05",
     "drawn_numbers": [
-      41,
-      2,
-      27,
-      28,
-      30,
-      42
+      6,
+      48,
+      34,
+      12,
+      22,
+      38
     ],
     "year": 2013
   },
@@ -18344,12 +18344,12 @@
     "draw_date_raw": "Du, 20 aprilie 2014",
     "draw_date_iso": "2014-04-20",
     "drawn_numbers": [
-      5,
       3,
-      44,
+      45,
       26,
-      42,
-      9
+      40,
+      47,
+      32
     ],
     "year": 2014
   },
@@ -18358,12 +18358,12 @@
     "draw_date_raw": "Du, 20 aprilie 2014",
     "draw_date_iso": "2014-04-20",
     "drawn_numbers": [
+      5,
       3,
-      45,
+      44,
       26,
-      40,
-      47,
-      32
+      42,
+      9
     ],
     "year": 2014
   },
@@ -19576,12 +19576,12 @@
     "draw_date_raw": "Du, 1 martie 2015",
     "draw_date_iso": "2015-03-01",
     "drawn_numbers": [
-      9,
-      46,
-      34,
-      11,
-      18,
-      35
+      21,
+      15,
+      27,
+      37,
+      29,
+      14
     ],
     "year": 2015
   },
@@ -19590,12 +19590,12 @@
     "draw_date_raw": "Du, 1 martie 2015",
     "draw_date_iso": "2015-03-01",
     "drawn_numbers": [
-      21,
-      15,
-      27,
-      37,
-      29,
-      14
+      9,
+      46,
+      34,
+      11,
+      18,
+      35
     ],
     "year": 2015
   },
@@ -20374,12 +20374,12 @@
     "draw_date_raw": "Du, 13 septembrie 2015",
     "draw_date_iso": "2015-09-13",
     "drawn_numbers": [
-      28,
-      40,
-      3,
+      22,
+      21,
+      18,
       17,
-      34,
-      49
+      41,
+      8
     ],
     "year": 2015
   },
@@ -20388,12 +20388,12 @@
     "draw_date_raw": "Du, 13 septembrie 2015",
     "draw_date_iso": "2015-09-13",
     "drawn_numbers": [
-      22,
-      21,
-      18,
+      28,
+      40,
+      3,
       17,
-      41,
-      8
+      34,
+      49
     ],
     "year": 2015
   },
@@ -21844,12 +21844,12 @@
     "draw_date_raw": "Du, 18 septembrie 2016",
     "draw_date_iso": "2016-09-18",
     "drawn_numbers": [
-      22,
-      47,
-      15,
-      14,
-      41,
-      2
+      18,
+      19,
+      35,
+      23,
+      45,
+      13
     ],
     "year": 2016
   },
@@ -21858,12 +21858,12 @@
     "draw_date_raw": "Du, 18 septembrie 2016",
     "draw_date_iso": "2016-09-18",
     "drawn_numbers": [
-      18,
-      19,
-      35,
-      23,
-      45,
-      13
+      22,
+      47,
+      15,
+      14,
+      41,
+      2
     ],
     "year": 2016
   },
@@ -35402,6 +35402,104 @@
       24,
       36,
       43
+    ],
+    "year": 2026
+  },
+  {
+    "index": 2529,
+    "draw_date_raw": "Jo, 16 iulie 2026",
+    "draw_date_iso": "2026-07-16",
+    "drawn_numbers": [
+      24,
+      4,
+      46,
+      37,
+      14,
+      1
+    ],
+    "year": 2026
+  },
+  {
+    "index": 2530,
+    "draw_date_raw": "Du, 19 iulie 2026",
+    "draw_date_iso": "2026-07-19",
+    "drawn_numbers": [
+      12,
+      19,
+      15,
+      41,
+      43,
+      18
+    ],
+    "year": 2026
+  },
+  {
+    "index": 2531,
+    "draw_date_raw": "Jo, 23 iulie 2026",
+    "draw_date_iso": "2026-07-23",
+    "drawn_numbers": [
+      43,
+      28,
+      20,
+      3,
+      44,
+      30
+    ],
+    "year": 2026
+  },
+  {
+    "index": 2532,
+    "draw_date_raw": "Du, 26 iulie 2026",
+    "draw_date_iso": "2026-07-26",
+    "drawn_numbers": [
+      20,
+      35,
+      31,
+      10,
+      39,
+      11
+    ],
+    "year": 2026
+  },
+  {
+    "index": 2533,
+    "draw_date_raw": "Jo, 30 iulie 2026",
+    "draw_date_iso": "2026-07-30",
+    "drawn_numbers": [
+      16,
+      18,
+      2,
+      19,
+      22,
+      13
+    ],
+    "year": 2026
+  },
+  {
+    "index": 2534,
+    "draw_date_raw": "Du, 2 august 2026",
+    "draw_date_iso": "2026-08-02",
+    "drawn_numbers": [
+      13,
+      30,
+      12,
+      49,
+      32,
+      48
+    ],
+    "year": 2026
+  },
+  {
+    "index": 2535,
+    "draw_date_raw": "Jo, 6 august 2026",
+    "draw_date_iso": "2026-08-06",
+    "drawn_numbers": [
+      25,
+      16,
+      5,
+      41,
+      42,
+      6
     ],
     "year": 2026
   }

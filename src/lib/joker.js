@@ -23,7 +23,7 @@ export function jokerTicketCost(mainCount, jokerCount) {
 }
 
 export function formatRon(value) {
-  return `${Number(value).toLocaleString('ro-RO', { minimumFractionDigits: value % 1 ? 2 : 0, maximumFractionDigits: 2 })} ron`;
+  return `${Number(value).toLocaleString('en-GB', { minimumFractionDigits: value % 1 ? 2 : 0, maximumFractionDigits: 2 })} RON`;
 }
 
 export function createEmptyJokerSlip() {
@@ -49,12 +49,12 @@ export function slipFromApiTicket(ticket) {
 }
 
 export const JOKER_WIN_CATEGORIES = [
-  'Cat. 1 — toate cele 5 numere + Joker',
-  'Cat. 2 — toate cele 5 numere',
-  'Cat. 3 — 4 numere + Joker',
-  'Cat. 4 — 4 numere',
-  'Cat. 5 — 3 numere + Joker',
-  'Cat. 6 — 3 numere',
-  'Cat. 7 — 2 numere + Joker',
-  'Cat. 8 — 1 număr + Joker'
+  'Cat. 1 — all 5 numbers + Joker',
+  'Cat. 2 — all 5 numbers',
+  'Cat. 3 — 4 numbers + Joker',
+  'Cat. 4 — 4 numbers',
+  'Cat. 5 — 3 numbers + Joker',
+  'Cat. 6 — 3 numbers',
+  'Cat. 7 — 2 numbers + Joker',
+  'Cat. 8 — 1 number + Joker'
 ];

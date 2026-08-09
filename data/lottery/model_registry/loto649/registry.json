@@ -1,0 +1,174 @@
+{
+  "models": [
+    {
+      "artifact_path": "data/lottery/ml_models/loto649_sk-49f3db46b8a76d7f4b.pkl",
+      "backtest_metrics": {
+        "average_rank_of_winning_numbers": 24.1583333335,
+        "brier_score": 0.1084762505,
+        "calibration_error": 0.0357310472,
+        "draws": 60,
+        "hits_at_10": 1.2666666667,
+        "hits_at_6": 0.7833333333,
+        "log_loss": 0.3763007093,
+        "ndcg_at_10": 0.1776632533,
+        "ndcg_at_6": 0.132630907
+      },
+      "created_at": "2026-08-08T23:34:44+00:00",
+      "dataset_hash": "4710ca11b49a91804ff02e303d89d3ff73bd83eb92d93e04aa5a96c243a0c7ca",
+      "ensemble_weight_search": {
+        "method": "simplex_grid_0.1",
+        "objective": "maximize NDCG@10, then minimize Brier score",
+        "tuning_metrics": {
+          "average_rank_of_winning_numbers": 24.891666667,
+          "brier_score": 0.1085099914,
+          "calibration_error": 0.040655621,
+          "draws": 60,
+          "hits_at_10": 1.3833333333,
+          "hits_at_6": 0.8166666667,
+          "log_loss": 0.3772532348,
+          "ndcg_at_10": 0.194867483,
+          "ndcg_at_6": 0.1416817498
+        },
+        "tuning_range": [
+          "2025-06-05",
+          "2026-01-04"
+        ]
+      },
+      "ensemble_weights": {
+        "monte_carlo": 0.4,
+        "sklearn": 0.4,
+        "statistics": 0.2
+      },
+      "feature_coefficients": {
+        "chi_contribution_history": 0.0348385658,
+        "cold_score": -0.0126799784,
+        "draw_count_history": -0.0034504884,
+        "drift_score": -0.0077357177,
+        "ewma_frequency": -0.0200184944,
+        "freq_10": 0.0264394194,
+        "freq_100": 0.0911335056,
+        "freq_25": -0.0361162959,
+        "freq_250": -0.0168263628,
+        "freq_50": -0.0756814822,
+        "freq_500": 0.0022493935,
+        "freq_full": 0.0075879572,
+        "frequency_dispersion": -0.0038477207,
+        "gap_current": 0.0133761229,
+        "gap_mean": 0.0073548842,
+        "gap_norm": -0.0176253539,
+        "gap_percentile": 0.0317914396,
+        "hot_score": 0.0126799784,
+        "number_norm": -0.0386483925,
+        "pair_dispersion": 0.0023962539,
+        "pair_recent_strength": -0.0073030381,
+        "pair_strength": -0.0183029843,
+        "recent_vs_long_term_divergence": -0.0002813381,
+        "rolling_entropy": -0.0021322512,
+        "trend_score": 0.0216603932
+      },
+      "feature_version": "649-features-v2",
+      "git_commit": "14e5e90b5f55b306c7405284768520c3e76b139d",
+      "hyperparameters": {
+        "C": 0.35,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": 0.0,
+        "max_iter": 600,
+        "n_jobs": null,
+        "penalty": "deprecated",
+        "random_state": 42,
+        "solver": "lbfgs",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "leakage_audit": {
+        "passed": true,
+        "rows_checked": 34300,
+        "rule": "history_end_date < target_date for every training and validation row"
+      },
+      "metadata_updated_at": "2026-08-08T23:58:50+00:00",
+      "model_id": "sk-49f3db46b8a76d7f4b",
+      "model_only_validation_metrics": {
+        "average_rank_of_winning_numbers": 23.5499999993,
+        "brier_score": 0.1072936427,
+        "calibration_error": 6.75475e-05,
+        "draws": 60,
+        "hits_at_10": 1.3833333333,
+        "hits_at_6": 0.9333333333,
+        "log_loss": 0.371036713,
+        "ndcg_at_10": 0.197050976,
+        "ndcg_at_6": 0.1548317812
+      },
+      "model_type": "sklearn_logistic_ranker",
+      "period_stability": [
+        {
+          "baseline_ndcg_at_10": 0.1247217977,
+          "draws": 30,
+          "ndcg_at_10": 0.1548007813,
+          "ndcg_gain": 0.0300789836,
+          "period": "early"
+        },
+        {
+          "baseline_ndcg_at_10": 0.159548298,
+          "draws": 30,
+          "ndcg_at_10": 0.2005257253,
+          "ndcg_gain": 0.0409774273,
+          "period": "late"
+        }
+      ],
+      "refit_through_date": "2026-08-06",
+      "seed": 42,
+      "status": "rejected",
+      "status_reason": "Demoted after independent 180-draw frozen-range backtest: empirical random-strategy p=0.05994006 exceeded the 0.05 promotion gate.",
+      "status_updated_at": "2026-08-08T23:38:28+00:00",
+      "train_range": [
+        "2019-06-09",
+        "2025-06-01"
+      ],
+      "training_end_date": "2026-08-06",
+      "validation_baseline_random": {
+        "average_rank_of_winning_numbers": 25.6138888888,
+        "brier_score": 0.107455227,
+        "calibration_error": 0.0,
+        "draws": 60,
+        "hits_at_10": 1.0333333333,
+        "hits_at_6": 0.4666666667,
+        "log_loss": 0.3717761799,
+        "ndcg_at_10": 0.1271858757,
+        "ndcg_at_6": 0.073790135
+      },
+      "validation_baseline_statistics": {
+        "average_rank_of_winning_numbers": 25.2500000003,
+        "brier_score": 0.1112605807,
+        "calibration_error": 0.0621448898,
+        "draws": 60,
+        "hits_at_10": 1.1,
+        "hits_at_6": 0.5166666667,
+        "log_loss": 0.3954722886,
+        "ndcg_at_10": 0.1421350478,
+        "ndcg_at_6": 0.0874021352
+      },
+      "validation_metrics": {
+        "average_rank_of_winning_numbers": 24.1583333335,
+        "brier_score": 0.1084762505,
+        "calibration_error": 0.0357310472,
+        "draws": 60,
+        "hits_at_10": 1.2666666667,
+        "hits_at_6": 0.7833333333,
+        "log_loss": 0.3763007093,
+        "ndcg_at_10": 0.1776632533,
+        "ndcg_at_6": 0.132630907
+      },
+      "validation_mode": "chronological_holdout_with_walk_forward_feature_frames",
+      "validation_range": [
+        "2026-01-08",
+        "2026-08-06"
+      ],
+      "validation_training_end_date": "2025-05-29"
+    }
+  ],
+  "version": 1
+}

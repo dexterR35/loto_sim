@@ -1,0 +1,54 @@
+name: Loto 6/49 official update
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Multiple idempotent checks on normal draw days. A missing result is a clean no-op.
+    - cron: "30 17,19,21 * * 0,4"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: loto649-official-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-pipeline.txt
+
+      - name: Install pipeline dependencies
+        run: pip install -r backend/requirements-pipeline.txt
+
+      - name: Fetch, validate, evaluate, retrain, and snapshot
+        run: python scripts/loto649_pipeline.py update
+
+      - name: Persist new official state
+        shell: bash
+        run: |
+          git config user.name "loto649-update-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/lottery/lottery_history.csv
+          git add data/lottery/loto649_draw_metadata.jsonl 2>/dev/null || true
+          git add data/lottery/reports/loto649/statistical 2>/dev/null || true
+          git add data/lottery/reports/loto649/predictions 2>/dev/null || true
+          git add data/lottery/reports/loto649/evaluations 2>/dev/null || true
+          git add data/lottery/model_registry/loto649 2>/dev/null || true
+          git add data/lottery/ml_models/loto649_* 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No new official draw was published."
+            exit 0
+          fi
+          git commit -m "data(loto649): ingest official draw and refresh prediction"
+          git push
