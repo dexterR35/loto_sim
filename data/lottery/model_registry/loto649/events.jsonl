@@ -4,3 +4,5 @@
 {"event": "model_metadata_updated", "model_id": "sk-49f3db46b8a76d7f4b", "timestamp": "2026-08-08T23:58:50+00:00", "updated_fields": ["feature_coefficients", "refit_through_date", "training_end_date", "validation_training_end_date"]}
 {"event": "model_registered", "model_id": "sk-bb21e1a304c3c1ecf4", "status": "candidate", "timestamp": "2026-08-09T18:00:04+00:00"}
 {"event": "model_status_changed", "model_id": "sk-bb21e1a304c3c1ecf4", "reason": "Rejected: random-strategy empirical p-value 0.315684 exceeds the promotion threshold 0.050000", "status": "rejected", "timestamp": "2026-08-09T18:00:04+00:00"}
+{"event": "model_registered", "model_id": "sk-43c4c786a733c9ccc0", "status": "candidate", "timestamp": "2026-08-13T18:28:02+00:00"}
+{"event": "model_status_changed", "model_id": "sk-43c4c786a733c9ccc0", "reason": "Rejected: random-strategy empirical p-value 0.326673 exceeds the promotion threshold 0.050000", "status": "rejected", "timestamp": "2026-08-13T18:28:02+00:00"}
