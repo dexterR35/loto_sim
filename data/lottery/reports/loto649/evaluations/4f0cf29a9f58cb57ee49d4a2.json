@@ -1,0 +1,81 @@
+{
+  "actual_numbers": [
+    6,
+    40,
+    11,
+    33,
+    9,
+    16
+  ],
+  "evaluated_at": "2026-08-16T17:45:37+00:00",
+  "evaluation_version": "649-evaluation-v2",
+  "metrics": {
+    "average_rank_of_winning_numbers": 29.83333333,
+    "brier_score": 0.1164998148,
+    "calibration_curve": [
+      {
+        "bin_lower": 0.0,
+        "bin_upper": 0.1,
+        "count": 17,
+        "mean_probability": 0.05777855,
+        "observed_rate": 0.17647059
+      },
+      {
+        "bin_lower": 0.1,
+        "bin_upper": 0.2,
+        "count": 29,
+        "mean_probability": 0.14754061,
+        "observed_rate": 0.10344828
+      },
+      {
+        "bin_lower": 0.2,
+        "bin_upper": 0.3,
+        "count": 3,
+        "mean_probability": 0.24636231,
+        "observed_rate": 0.0
+      }
+    ],
+    "calibration_error": 0.0823577386,
+    "hits_at_10": 0,
+    "hits_at_6": 0,
+    "log_loss": 0.4153450627,
+    "mean_reciprocal_rank": 0.05555556,
+    "ndcg_at_10": 0.0,
+    "ndcg_at_6": 0.0,
+    "precision_at_10": 0.0,
+    "precision_at_6": 0.0,
+    "ranks_of_winning_numbers": [
+      18,
+      20,
+      21,
+      34,
+      42,
+      44
+    ],
+    "recall_at_10": 0.0,
+    "recall_at_6": 0.0,
+    "top_10": [
+      19,
+      36,
+      5,
+      43,
+      32,
+      3,
+      18,
+      13,
+      21,
+      7
+    ],
+    "top_6": [
+      19,
+      36,
+      5,
+      43,
+      32,
+      3
+    ]
+  },
+  "prediction_created_at": "2026-08-13T18:28:02+00:00",
+  "prediction_id": "4f0cf29a9f58cb57ee49d4a2",
+  "target_draw_date": "2026-08-16"
+}
