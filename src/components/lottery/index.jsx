@@ -1,42 +1,24 @@
+import { useMemo } from 'react';
 import { Search, Sparkles } from 'lucide-react';
 import { GAMES } from '../../lib/constants';
 import { formatDrawDate } from '../../lib/format';
 import { getGameTheme } from '../../lib/gameTheme';
-import { Badge } from '../ui';
-
-const BALL_SIZES = {
-  sm: 'h-8 min-w-8 text-xs',
-  md: 'h-10 min-w-10 text-sm',
-  lg: 'h-12 min-w-12 text-base',
-  xl: 'h-14 min-w-14 text-lg'
-};
-
-const BALL_TONES = {
-  default: 'border-line bg-elevated text-ink',
-  hot: 'border-coral/30 bg-coral/10 text-coral',
-  cold: 'border-teal/30 bg-teal/10 text-teal',
-  overdue: 'border-gold/30 bg-gold/10 text-gold',
-  joker: 'border-grape/30 bg-grape/10 text-grape',
-  bonus: 'border-line bg-surface text-ink'
-};
+import { Badge, DataTable, DEFAULT_PAGE_SIZE } from '../ui';
+import { TicketBall } from './Ticket';
 
 export function NumberPill({ value, tone = 'default', size = 'md' }) {
-  return (
-    <span className={`inline-grid shrink-0 place-items-center rounded-full border px-2 font-bold tabular-nums ${BALL_SIZES[size]} ${BALL_TONES[tone]}`}>
-      {value}
-    </span>
-  );
+  return <TicketBall value={value} tone={tone} size={size} />;
 }
 
-export function NumberRow({ values = [], joker, size = 'md', gap = 'gap-2' }) {
+export function NumberRow({ values = [], joker, size = 'md', tone = 'default' }) {
   return (
-    <div className={`flex flex-wrap items-center ${gap}`}>
+    <div className={`ticket-balls${size === 'lg' || size === 'xl' ? ' ticket-balls--lg' : ''}`}>
       {values.map((number, index) => (
-        <NumberPill key={`${number}-${index}`} value={number} size={size} />
+        <NumberPill key={`${number}-${index}`} value={number} size={size} tone={tone} />
       ))}
       {joker ? (
-        <div className="flex items-center gap-1.5 pl-1">
-          <span className="text-[10px] font-black uppercase tracking-wider text-muted">Joker</span>
+        <div className="ticket-joker">
+          <span className="ticket-joker__label">Joker</span>
           <NumberPill value={joker} tone="joker" size={size} />
         </div>
       ) : null}
@@ -160,7 +142,7 @@ export function Ticket({ ticket, game, onAnalyze, index = 0 }) {
         <Badge tone="primary">score {Number(ticket.score).toFixed(2)}</Badge>
       </div>
       <div className="flex justify-center py-2">
-        <NumberRow values={ticket.numbers} joker={game === 'joker' ? ticket.joker : null} size="lg" gap="gap-2.5" />
+        <NumberRow values={ticket.numbers} joker={game === 'joker' ? ticket.joker : null} size="lg" />
       </div>
       <div className="mt-4 grid gap-3 border-t border-line pt-4">
         <ScoreMeter score={ticket.score} max={maxScore} />
@@ -239,43 +221,74 @@ export function DrawCard({ draw, onOpen }) {
   );
 }
 
-export function DrawTable({ draws, onOpenRaw }) {
+export function DrawTable({
+  draws = [],
+  onOpenRaw,
+  total,
+  offset = 0,
+  limit = DEFAULT_PAGE_SIZE,
+  onPageChange
+}) {
+  const columns = useMemo(() => [
+    {
+      accessorKey: 'draw_date_iso',
+      header: 'Date',
+      cell: ({ row }) => (
+        <>
+          <div className="font-bold text-ink">{formatDrawDate(row.original)}</div>
+          <div className="mt-1 text-xs font-bold text-muted">{row.original.year}</div>
+        </>
+      )
+    },
+    {
+      id: 'numbers',
+      header: 'Numbers',
+      enableSorting: false,
+      cell: ({ row }) => (
+        <NumberRow values={row.original.drawn_numbers || []} joker={row.original.joker_number} size="sm" />
+      )
+    },
+    {
+      id: 'report',
+      header: 'Report / fond',
+      accessorFn: (draw) => draw.fond_castiguri || draw.category_data?.I?.report || draw.category_data?.['1']?.report || '—'
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      enableSorting: false,
+      cell: ({ row }) => (onOpenRaw ? (
+        <button type="button" onClick={() => onOpenRaw(row.original)} className="rounded-full bg-elevated px-3 py-1.5 text-xs font-bold text-muted hover:text-primary">
+          Details
+        </button>
+      ) : null)
+    }
+  ], [onOpenRaw]);
+
+  const server = typeof total === 'number' && typeof onPageChange === 'function';
+  const pageSize = Math.max(1, limit);
+  const pagination = server
+    ? { pageIndex: Math.floor((offset || 0) / pageSize), pageSize }
+    : undefined;
+
   return (
-    <div className="overflow-auto">
-      <table className="w-full min-w-[760px] border-separate border-spacing-0 text-left text-sm">
-        <thead>
-          <tr className="text-xs uppercase tracking-wide text-muted">
-            <th className="border-b border-line px-3 py-3">Date</th>
-            <th className="border-b border-line px-3 py-3">Numbers</th>
-            <th className="border-b border-line px-3 py-3">Report/Fond</th>
-            <th className="border-b border-line px-3 py-3">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {draws.map((draw, rowIndex) => (
-            <tr key={`${draw.game}-${draw.draw_date_iso}-${rowIndex}`} className="transition hover:bg-field/80">
-              <td className="border-b border-line px-3 py-3 font-black text-ink">
-                <div>{formatDrawDate(draw)}</div>
-                <div className="mt-1 text-xs font-bold text-muted">{draw.year}</div>
-              </td>
-              <td className="border-b border-line px-3 py-3">
-                <NumberRow values={draw.drawn_numbers || []} joker={draw.joker_number} size="sm" />
-              </td>
-              <td className="border-b border-line px-3 py-3 text-muted">
-                {draw.fond_castiguri || draw.category_data?.I?.report || draw.category_data?.['1']?.report || '-'}
-              </td>
-              <td className="border-b border-line px-3 py-3">
-                {onOpenRaw ? (
-                  <button type="button" onClick={() => onOpenRaw(draw)} className="rounded-full bg-elevated px-3 py-1.5 text-xs font-bold text-muted hover:text-primary">
-                    Details
-                  </button>
-                ) : null}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      data={draws}
+      columns={columns}
+      pageSize={pageSize}
+      empty="No draws in this range."
+      getRowId={(row, index) => `${row.game}-${row.draw_date_iso}-${index}`}
+      manualPagination={server}
+      rowCount={server ? total : undefined}
+      pagination={pagination}
+      onPaginationChange={server ? (updater) => {
+        const current = { pageIndex: Math.floor((offset || 0) / pageSize), pageSize };
+        const next = typeof updater === 'function' ? updater(current) : updater;
+        const size = next.pageSize;
+        const index = size !== pageSize ? 0 : next.pageIndex;
+        onPageChange(index * size, size);
+      } : undefined}
+    />
   );
 }
 

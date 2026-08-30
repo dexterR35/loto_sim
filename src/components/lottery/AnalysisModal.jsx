@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { BarChart3, BrainCircuit, Calculator, ChevronDown, ChevronRight, Database, Hash, Search, Sparkles, Trophy } from 'lucide-react';
 import {
   LineProfileStats,
@@ -7,7 +7,7 @@ import {
   ScoreBreakdown
 } from './Calculator';
 import { NumberPill, NumberRow } from './index';
-import { Modal, Tabs } from '../ui';
+import { Modal, Tabs, DataTable } from '../ui';
 import { formatDrawDate, formatEnglishDate } from '../../lib/format';
 
 const DETAIL_TABS = [
@@ -63,35 +63,113 @@ function MatchSummary({ histogram = [], totalDraws }) {
 }
 
 function NumberFrequencyList({ rows = [] }) {
+  const columns = useMemo(() => [
+    {
+      accessorKey: 'number',
+      header: 'Number',
+      cell: ({ row, getValue }) => <NumberPill value={getValue()} tone={row.original.signal || 'default'} size="sm" />
+    },
+    { accessorKey: 'count', header: 'Draws' },
+    {
+      accessorKey: 'last_draw_date_iso',
+      header: 'Last seen',
+      cell: ({ getValue }) => (getValue() ? formatEnglishDate(getValue()) : '—')
+    },
+    { accessorKey: 'signal', header: 'Signal' }
+  ], []);
   if (!rows.length) return null;
   return (
-    <div className="grid gap-2">
-      {rows.map((row) => (
-        <div key={row.number} className="grid grid-cols-[auto_1fr] items-center gap-2 rounded-2xl bg-elevated px-3 py-2 text-sm">
-          <NumberPill value={row.number} tone={row.signal || 'default'} size="sm" />
-          <span className="text-muted">
-            appeared in <span className="font-black text-ink">{row.count}</span> draws
-            {row.last_draw_date_iso ? (
-              <>, most recently: <span className="font-bold text-ink">{formatEnglishDate(row.last_draw_date_iso)}</span></>
-            ) : null}
-          </span>
-        </div>
-      ))}
-    </div>
+    <DataTable
+      data={rows}
+      columns={columns}
+      empty="No per-number archive counts."
+      getRowId={(row) => String(row.number)}
+    />
   );
 }
 
 function DrawMatchTable({ title, draws = [], selectedNumbers = [] }) {
   const [expanded, setExpanded] = useState(true);
+  const selectedSet = useMemo(() => new Set(selectedNumbers), [selectedNumbers]);
+  const columns = useMemo(() => [
+    {
+      accessorKey: 'draw_date_iso',
+      header: 'Draw date',
+      cell: ({ row }) => <span className="whitespace-nowrap font-bold text-ink">{formatDrawDate(row.original)}</span>
+    },
+    {
+      id: 'drawn',
+      header: 'Drawn numbers',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const drawn = (row.original.drawn_numbers || []).slice(0, 6);
+        return (
+          <div className="flex flex-wrap gap-1">
+            {drawn.map((n) => (
+              <span
+                key={n}
+                className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full text-[10px] font-black ${
+                  selectedSet.has(Number(n)) ? 'bg-primary text-field' : 'bg-elevated text-muted'
+                }`}
+              >
+                {n}
+              </span>
+            ))}
+          </div>
+        );
+      }
+    },
+    {
+      id: 'matches',
+      header: 'Matches',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const drawn = (row.original.drawn_numbers || []).slice(0, 6);
+        const matched = row.original.matched_numbers || drawn.filter((n) => selectedSet.has(Number(n)));
+        return (
+          <div className="flex flex-wrap gap-1">
+            {matched.map((n) => <NumberPill key={n} value={n} tone="hot" size="sm" />)}
+          </div>
+        );
+      }
+    },
+    {
+      id: 'cat1',
+      header: 'Cat. I',
+      accessorFn: (draw) => draw.category_data?.I?.numar_castiguri,
+      cell: ({ row }) => {
+        const cat = row.original.category_data?.I || {};
+        return <><span className="text-muted">{cat.numar_castiguri ?? '—'}</span><br /><span className="font-bold">{formatCategoryValue(cat.valoare_castig)}</span></>;
+      }
+    },
+    {
+      id: 'cat2',
+      header: 'Cat. II',
+      accessorFn: (draw) => draw.category_data?.II?.numar_castiguri,
+      cell: ({ row }) => {
+        const cat = row.original.category_data?.II || {};
+        return <><span className="text-muted">{cat.numar_castiguri ?? '—'}</span><br /><span className="font-bold">{formatCategoryValue(cat.valoare_castig)}</span></>;
+      }
+    },
+    {
+      id: 'cat3',
+      header: 'Cat. III',
+      accessorFn: (draw) => draw.category_data?.III?.numar_castiguri,
+      cell: ({ row }) => {
+        const cat = row.original.category_data?.III || {};
+        return <><span className="text-muted">{cat.numar_castiguri ?? '—'}</span><br /><span className="font-bold">{formatCategoryValue(cat.valoare_castig)}</span></>;
+      }
+    }
+  ], [selectedSet]);
+
   if (!draws.length) return null;
-  const selectedSet = new Set(selectedNumbers);
 
   return (
-    <div className="rounded-2xl border border-line overflow-hidden">
+    <div className="grid gap-3 rounded-2xl border border-line p-3">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="grid w-full grid-cols-[1fr_auto] items-center gap-2 bg-elevated px-4 py-3 text-left text-sm font-bold text-ink hover:bg-elevated/80"
+        className="grid w-full grid-cols-[1fr_auto] items-center gap-2 text-left text-sm font-bold text-ink"
       >
         <span>{title}</span>
         <span className="flex items-center gap-2 text-xs font-bold text-muted">
@@ -100,70 +178,11 @@ function DrawMatchTable({ title, draws = [], selectedNumbers = [] }) {
         </span>
       </button>
       {expanded ? (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-xs">
-            <thead>
-              <tr className="border-b border-line bg-field/50 text-[10px] uppercase tracking-wide text-muted">
-                <th className="px-3 py-2">Draw date</th>
-                <th className="px-3 py-2">Drawn numbers</th>
-                <th className="px-3 py-2">Matches</th>
-                <th className="px-3 py-2">Cat. I</th>
-                <th className="px-3 py-2">Cat. II</th>
-                <th className="px-3 py-2">Cat. III</th>
-              </tr>
-            </thead>
-            <tbody>
-              {draws.map((draw) => {
-                const drawn = (draw.drawn_numbers || []).slice(0, 6);
-                const matched = draw.matched_numbers || drawn.filter((n) => selectedSet.has(Number(n)));
-                const cat = draw.category_data || {};
-                return (
-                  <tr key={draw.draw_date_iso || draw.draw_date_raw} className="border-b border-line/70 hover:bg-field/30">
-                    <td className="px-3 py-2.5 font-bold text-ink whitespace-nowrap">{formatDrawDate(draw)}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex flex-wrap gap-1">
-                        {drawn.map((n) => (
-                          <span
-                            key={n}
-                            className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full text-[10px] font-black ${
-                              selectedSet.has(Number(n))
-                                ? 'bg-primary text-field'
-                                : 'bg-elevated text-muted'
-                            }`}
-                          >
-                            {n}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex flex-wrap gap-1">
-                        {matched.map((n) => (
-                          <NumberPill key={n} value={n} tone="hot" size="sm" />
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-muted">
-                      {cat.I?.numar_castiguri ?? '—'}
-                      <br />
-                      <span className="font-bold">{formatCategoryValue(cat.I?.valoare_castig)}</span>
-                    </td>
-                    <td className="px-3 py-2.5 text-muted">
-                      {cat.II?.numar_castiguri ?? '—'}
-                      <br />
-                      <span className="font-bold">{formatCategoryValue(cat.II?.valoare_castig)}</span>
-                    </td>
-                    <td className="px-3 py-2.5 text-muted">
-                      {cat.III?.numar_castiguri ?? '—'}
-                      <br />
-                      <span className="font-bold">{formatCategoryValue(cat.III?.valoare_castig)}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          data={draws}
+          columns={columns}
+          getRowId={(row, index) => row.draw_date_iso || row.draw_date_raw || String(index)}
+        />
       ) : null}
     </div>
   );
@@ -242,6 +261,15 @@ function AnalysisOverview({ result }) {
   );
 }
 
+function SimilarDrawsTable({ draws }) {
+  const columns = useMemo(() => [
+    { accessorKey: 'draw_date_iso', header: 'Date', cell: ({ row }) => <span className="whitespace-nowrap font-bold text-ink">{formatDrawDate(row.original)}</span> },
+    { id: 'numbers', header: 'Numbers', enableSorting: false, cell: ({ row }) => <span className="font-mono text-xs">{(row.original.drawn_numbers || []).join(', ')}</span> },
+    { accessorKey: 'similarity', header: 'Similarity', cell: ({ getValue }) => `${(Number(getValue()) * 100).toFixed(1)}%` }
+  ], []);
+  return <DataTable data={draws} columns={columns} getRowId={(row, index) => row.draw_date_iso || row.draw_date_raw || String(index)} />;
+}
+
 function AnalysisRAG({ result }) {
   const rag = result?.rag;
   if (!rag) {
@@ -275,29 +303,20 @@ function AnalysisRAG({ result }) {
       ) : null}
 
       {rag.similar_draws?.length ? (
-        <div className="overflow-auto rounded-2xl border border-line">
-          <table className="w-full min-w-[480px] text-left text-sm">
-            <thead>
-              <tr className="bg-field text-[10px] uppercase tracking-wide text-muted">
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Numbers</th>
-                <th className="px-3 py-2">Similarity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rag.similar_draws.map((draw) => (
-                <tr key={draw.draw_date_iso || draw.draw_date_raw} className="border-t border-line">
-                  <td className="px-3 py-2 font-bold text-ink whitespace-nowrap">{formatDrawDate(draw)}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{(draw.drawn_numbers || []).join(', ')}</td>
-                  <td className="px-3 py-2 font-black text-secondary">{(draw.similarity * 100).toFixed(1)}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <SimilarDrawsTable draws={rag.similar_draws} />
       ) : null}
     </div>
   );
+}
+
+function MlNumberTable({ rows }) {
+  const columns = useMemo(() => [
+    { accessorKey: 'number', header: 'Number', cell: ({ getValue }) => <NumberPill value={getValue()} tone="hot" size="sm" /> },
+    { accessorKey: 'rank', header: 'Rank ML', cell: ({ getValue }) => `#${getValue()}` },
+    { accessorKey: 'probability_blend', header: 'Prob. blend', cell: ({ getValue }) => <span className="font-bold text-grape">{(Number(getValue()) * 100).toFixed(1)}%</span> },
+    { accessorKey: 'archive_count', header: 'Archive', cell: ({ getValue }) => `${getValue()}×` }
+  ], []);
+  return <DataTable data={rows} columns={columns} getRowId={(row) => String(row.number)} />;
 }
 
 function AnalysisML({ result }) {
@@ -344,28 +363,7 @@ function AnalysisML({ result }) {
       ) : null}
 
       {line.per_number?.length ? (
-        <div className="overflow-auto rounded-2xl border border-line">
-          <table className="w-full min-w-[400px] text-left text-sm">
-            <thead>
-              <tr className="bg-field text-[10px] uppercase tracking-wide text-muted">
-                <th className="px-3 py-2">Number</th>
-                <th className="px-3 py-2">Rank ML</th>
-                <th className="px-3 py-2">Prob. blend</th>
-                <th className="px-3 py-2">Archive</th>
-              </tr>
-            </thead>
-            <tbody>
-              {line.per_number.map((row) => (
-                <tr key={row.number} className="border-t border-line">
-                  <td className="px-3 py-2"><NumberPill value={row.number} tone="hot" size="sm" /></td>
-                  <td className="px-3 py-2 font-bold text-muted">#{row.rank}</td>
-                  <td className="px-3 py-2 font-black text-grape">{(row.probability_blend * 100).toFixed(1)}%</td>
-                  <td className="px-3 py-2 text-muted">{row.archive_count}×</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <MlNumberTable rows={line.per_number} />
       ) : null}
 
       {ml.top_numbers?.length ? (

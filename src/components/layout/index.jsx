@@ -2,6 +2,7 @@ import { Menu, Orbit, X } from 'lucide-react';
 import { GAMES, VIEWS } from '../../lib/constants';
 import { formatNumber } from '../../lib/api';
 import { GameSwitcher } from '../lottery';
+import { TicketStack } from '../lottery/CompactTicket';
 import { IconButton } from '../ui';
 
 export function Sidebar({ activeView, onViewChange, summary, mobileOpen, onClose }) {
@@ -14,13 +15,13 @@ export function Sidebar({ activeView, onViewChange, summary, mobileOpen, onClose
       }
     >
       <header className="flex min-h-20 items-center justify-between px-5">
-        <div className="flex min-w-0 items-center gap-2">
+        <p className="flex min-w-0 items-center gap-2">
           <Orbit size={24} className="shrink-0 text-primary" />
-          <div className="min-w-0">
-            <div className="truncate text-sm font-bold tracking-tight text-ink">loto-gpt</div>
-            <div className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">research OS</div>
-          </div>
-        </div>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-bold tracking-tight text-ink">loto-gpt</span>
+            <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">ticket lab</span>
+          </span>
+        </p>
         {mobileOpen ? <IconButton label="Close navigation" icon={X} onClick={onClose} className="lg:hidden" /> : null}
       </header>
 
@@ -57,13 +58,27 @@ export function PageHeader({ activeView, onMenu, game, onGameChange, loading = f
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-field/85 px-4 py-3 backdrop-blur-xl lg:px-7">
-      <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <IconButton label="Open navigation" icon={Menu} onClick={onMenu} className="lg:hidden" />
-            <h1 className="truncate text-base font-bold tracking-tight text-ink sm:text-lg">{title}</h1>
-          </div>
-          <GameSwitcher game={game} onGameChange={onGameChange} disabled={loading} />
-      </div>
+      <section className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <section className="flex min-w-0 items-center gap-3">
+          <IconButton label="Open navigation" icon={Menu} onClick={onMenu} className="lg:hidden" />
+          <h1 className="truncate text-base font-bold tracking-tight text-ink sm:text-lg">{title}</h1>
+        </section>
+        <GameSwitcher game={game} onGameChange={onGameChange} disabled={loading} />
+      </section>
     </header>
+  );
+}
+
+export function TicketRail({ tickets = [], game, onOpen, onClear, onNumberClick }) {
+  if (!tickets.length) return null;
+
+  return (
+    <aside className="ticket-rail">
+      <strong>Active tickets</strong>
+      <TicketStack tickets={tickets} onNumberClick={onNumberClick} onOpen={onOpen} />
+      <button type="button" onClick={onClear} className="mt-3 rounded-full bg-elevated px-3 py-1.5 text-xs font-bold text-muted hover:text-primary">
+        Clear
+      </button>
+    </aside>
   );
 }

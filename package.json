@@ -19,10 +19,12 @@
     "start": "npm run dev"
   },
   "dependencies": {
+    "@tanstack/react-table": "^9.2.4",
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "recharts": "^3.10.1",
     "vite": "latest"
   },
   "devDependencies": {

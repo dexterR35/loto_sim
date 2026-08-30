@@ -2,18 +2,20 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BrainCircuit,
   FlaskConical,
-  Gauge,
   Loader2,
-  RefreshCw,
   ShieldCheck,
   Shuffle,
   Target
 } from 'lucide-react';
-import { NumberGridPicker } from '../components/lottery/NumberGridPicker';
-import { NumberRow } from '../components/lottery';
-import { Badge, LoadingBlock, Panel } from '../components/ui';
+import { NumberPill, NumberRow } from '../components/lottery';
+import { ModelCompareChart } from '../components/charts';
+import { TicketPickSection } from '../components/lottery/Loto649TicketUI';
+import { TicketPasteField, TicketStatus } from '../components/lottery/Ticket';
+import { Badge, ChoiceChip, Chip, LoadingBlock, MetricCard, MetricGrid, Panel } from '../components/ui';
 import { api } from '../lib/api';
+import { modelChartData } from '../lib/activity';
 import { formatEnglishDate, formatEnglishNumber } from '../lib/format';
+import { completePick, randomPick } from '../lib/loto649';
 
 const ATTEMPT_PRESETS = [
   { value: 100_000, label: '100K' },
@@ -75,99 +77,59 @@ function formatChance(value) {
   return `${percent.toFixed(2)}%`;
 }
 
-function ResultCard({ result, attemptLimit }) {
+function ResultCard({ result, attemptLimit, targetNumbers = [] }) {
   if (!result.available) {
     return (
-      <article className="rounded-2xl border border-coral/25 bg-coral/5 p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-sm font-black text-ink">{result.label}</div>
-          <Badge tone="coral">Unavailable</Badge>
-        </div>
-        <p className="mt-4 text-xs leading-5 text-coral">{result.error}</p>
-      </article>
+      <MetricCard className="metric-card--warn" label={result.family.replace('_', ' ')} value={result.label} detail={result.error} />
     );
   }
 
-  const firstHit = result.simulated_first_hit_attempt;
   const validationAuc = Number(
     result.details?.metrics?.roc_auc ?? result.details?.metrics?.val_auc
   );
   const hasValidationAuc = Number.isFinite(validationAuc);
+
   return (
-    <article className={`grid gap-5 rounded-2xl border p-5 ${result.reached ? 'border-teal/30 bg-teal/5' : 'border-line bg-elevated'}`}>
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-sm font-black text-ink">{result.label}</div>
-          <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{result.family.replace('_', ' ')}</div>
-        </div>
-        <Badge tone={result.reached ? 'teal' : 'gold'}>{result.reached ? 'Seeded run hit' : 'No seeded hit'}</Badge>
-      </header>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl bg-surface p-4">
-          <div className="text-[10px] font-black uppercase tracking-[0.14em] text-muted">Model-expected appearances</div>
-          <div className="mt-2 break-words text-3xl font-black tracking-[-0.04em] text-primary">{formatExpectedMatches(result.expected_hits_within_limit)}</div>
-          <p className="mt-1 text-xs font-semibold text-muted">deterministic expectation across {formatAttempts(attemptLimit)} tickets</p>
-        </div>
-        <div className="rounded-2xl bg-surface p-4">
-          <div className="text-[10px] font-black uppercase tracking-[0.14em] text-muted">Seeded-run appearances</div>
-          <div className="mt-2 break-words text-3xl font-black tracking-[-0.04em] text-ink">{formatCount(result.exact_hits_within_limit)}</div>
-          <p className="mt-1 text-xs font-semibold text-muted">random observed count; changes with the seed</p>
-        </div>
+    <MetricCard
+      className={result.reached ? 'metric-card--ok' : ''}
+      label={result.family.replace('_', ' ')}
+      value={formatExpectedMatches(result.expected_hits_within_limit)}
+      detail={`${result.label} · expected in ${formatAttempts(attemptLimit)}`}
+    >
+      <div className="choice-row">
+        <Chip active={result.reached}>{result.reached ? 'Hit' : 'Miss'}</Chip>
+        <Chip>{formatCount(result.exact_hits_within_limit)} seeded</Chip>
+        <Chip>{formatChance(result.hit_probability_within_limit)}</Chip>
+        <Chip>1 in {formatAttempts(result.one_in)}</Chip>
+        <Chip>{formatAttempts(result.simulated_first_hit_attempt)} first</Chip>
+        <Chip>{formatAttempts(result.expected_attempts)} expected</Chip>
+        <Chip>{formatEnglishNumber(result.exact_hits_per_million, { maximumFractionDigits: 3 })} / M</Chip>
+        <Chip>{Number(result.probability_uplift_vs_uniform).toFixed(2)}× vs uniform</Chip>
       </div>
-
-      <div className="rounded-2xl bg-surface p-4">
-        <div className="text-[10px] font-black uppercase tracking-[0.14em] text-muted">Seeded random trial · first exact hit</div>
-        <div className="mt-2 break-words text-2xl font-black tracking-[-0.04em] text-ink">{formatAttempts(firstHit)}</div>
-        <p className="mt-1 text-xs font-semibold text-muted">
-          {result.reached
-            ? 'First occurrence inside the selected budget.'
-            : 'No occurrence inside the selected budget.'}
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-2xl bg-surface p-3">
-          <div className="font-bold text-muted">Chance in budget</div>
-          <div className="mt-1 text-base font-black text-ink">{formatChance(result.hit_probability_within_limit)}</div>
-        </div>
-        <div className="rounded-2xl bg-surface p-3">
-          <div className="font-bold text-muted">Generator odds</div>
-          <div className="mt-1 text-base font-black text-ink">1 in {formatAttempts(result.one_in)}</div>
-        </div>
-        <div className="rounded-2xl bg-surface p-3">
-          <div className="font-bold text-muted">Expected first hit</div>
-          <div className="mt-1 text-base font-black text-ink">{formatAttempts(result.expected_attempts)}</div>
-        </div>
-        <div className="rounded-2xl bg-surface p-3">
-          <div className="font-bold text-muted">Observed / million</div>
-          <div className="mt-1 text-base font-black text-ink">{formatEnglishNumber(result.exact_hits_per_million, { maximumFractionDigits: 3 })}</div>
-        </div>
-        <div className="rounded-2xl bg-surface p-3">
-          <div className="font-bold text-muted">vs uniform generator</div>
-          <div className="mt-1 text-base font-black text-ink">{Number(result.probability_uplift_vs_uniform).toFixed(2)}×</div>
-        </div>
-      </div>
-
       {hasValidationAuc ? (
-        <div className="rounded-2xl border border-gold/20 bg-gold/5 p-4 text-xs leading-5 text-muted">
-          <span className="font-black text-ink">Stored model validation AUC: {validationAuc.toFixed(4)}.</span>{' '}
-          {Math.abs(validationAuc - 0.5) < 0.02
-            ? 'That is approximately random discrimination; it is not evidence of reliable lottery prediction.'
-            : 'Use the zero-leakage walk-forward backtest—not this seeded run—to judge predictive value.'}
-        </div>
+        <span>
+          AUC {validationAuc.toFixed(4)}. {Math.abs(validationAuc - 0.5) < 0.02
+            ? 'Near-random discrimination, not a jackpot edge.'
+            : 'Judge models on the walk-forward backtest, not this seeded run.'}
+        </span>
       ) : null}
-
       {result.top_numbers?.length ? (
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.14em] text-muted">Highest-weight numbers</div>
-          <div className="mt-3"><NumberRow values={result.top_numbers} size="sm" /></div>
-          <div className="mt-2 text-xs font-semibold text-muted">Target average model rank: {result.target_average_rank}</div>
+          <div className="ticket-balls">
+            {result.top_numbers.map((number) => (
+              <NumberPill
+                key={number}
+                value={number}
+                size="sm"
+                tone={targetNumbers.includes(number) ? 'primary' : 'default'}
+              />
+            ))}
+          </div>
+          <span>Rank {result.target_average_rank}</span>
         </div>
       ) : null}
-
-      <p className="border-t border-line pt-3 text-[11px] leading-5 text-muted">{result.description}</p>
-    </article>
+      <span>{result.description}</span>
+    </MetricCard>
   );
 }
 
@@ -216,6 +178,11 @@ export function TargetSimulatorPage({ game, onGameChange, onOpenBacktest, initia
   const randomComparison = backtestEvidence?.random_comparisons?.sklearn_logistic_frozen;
   const backtestPValue = Number(randomComparison?.empirical_p_value);
 
+  const applyTargetNumbers = (numbers) => {
+    setTargetText(numbers.join(' · '));
+    setResult(null);
+  };
+
   const toggleTargetNumber = (number) => {
     const current = target.numbers;
     const next = current.includes(number)
@@ -223,14 +190,32 @@ export function TargetSimulatorPage({ game, onGameChange, onOpenBacktest, initia
       : current.length < 6
         ? [...current, number].sort((a, b) => a - b)
         : current;
-    setTargetText(next.join(' · '));
-    setResult(null);
+    applyTargetNumbers(next);
   };
 
   const useLatest = () => {
-    const numbers = latestDraw?.drawn_numbers || latestDraw?.numbers || [];
-    setTargetText(numbers.join(' · '));
-    setResult(null);
+    applyTargetNumbers(latestDraw?.drawn_numbers || latestDraw?.numbers || []);
+  };
+
+  const clearTarget = () => applyTargetNumbers([]);
+
+  const generateTarget = () => {
+    if (running) return;
+    if (target.numbers.length >= 6) {
+      applyTargetNumbers(randomPick(49, 6));
+      return;
+    }
+    applyTargetNumbers(completePick(target.numbers, [randomPick(49, 6, target.numbers)], 6, 49, 6));
+  };
+
+  const quickPickTarget = (digit) => {
+    if (running) return;
+    if (digit === 0) {
+      applyTargetNumbers([]);
+      return;
+    }
+    const count = Math.min(6, Math.max(1, Number(digit) || 6));
+    applyTargetNumbers(completePick(target.numbers, [randomPick(49, count, target.numbers)], count, 49, 6));
   };
 
   const toggleModel = (key) => {
@@ -293,21 +278,20 @@ export function TargetSimulatorPage({ game, onGameChange, onOpenBacktest, initia
   }
 
   return (
-    <div className="grid gap-5">
-      <header className="grid gap-6 rounded-2xl border border-line bg-surface p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="teal">Model weights + seeded generator</Badge>
+    <article className="page-stack">
+      <header className="chart-card chart-card__head--row lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <section>
+          <p className="flex flex-wrap items-center gap-2">
+            <Badge tone="teal">Generator frequency</Badge>
             <Badge>Order does not matter</Badge>
-          </div>
-          <h2 className="mt-5 max-w-4xl text-3xl font-black leading-tight tracking-[-0.04em] text-ink sm:text-5xl">How often can each generator produce this exact 6/49 line?</h2>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-muted">Each model first produces 49 fixed weights. A seeded random generator then samples six-number tickets from those weights. This measures generator frequency—not future-draw prediction accuracy.</p>
-        </div>
+          </p>
+          <h2 className="mt-2 text-lg font-bold tracking-[-0.03em] text-ink">Target simulator</h2>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-muted">Compare how often each generator can produce this exact 6/49 line. Ticket numbers carry over from Generate.</p>
+        </section>
         {latestDraw ? (
-          <div className="rounded-2xl bg-elevated p-4">
-            <div className="text-[10px] font-black uppercase tracking-[0.14em] text-muted">Latest official · {formatEnglishDate(latestDraw.draw_date_iso || latestDraw.draw_date)}</div>
-            <div className="mt-3"><NumberRow values={latestDraw.drawn_numbers || latestDraw.numbers || []} size="sm" /></div>
-          </div>
+          <MetricCard label="Latest official" value={formatEnglishDate(latestDraw.draw_date_iso || latestDraw.draw_date)}>
+            <NumberRow values={latestDraw.drawn_numbers || latestDraw.numbers || []} size="sm" tone="primary" />
+          </MetricCard>
         ) : null}
       </header>
 
@@ -320,164 +304,142 @@ export function TargetSimulatorPage({ game, onGameChange, onOpenBacktest, initia
           </button>
         ) : null}
       >
-        <div className="grid gap-3 lg:grid-cols-3">
-          <div className="rounded-2xl bg-elevated p-4">
-            <div className="text-xs font-black text-ink">1 · ML inference</div>
-            <p className="mt-2 text-xs leading-5 text-muted">sklearn and LSTM run against the current history and output number weights. They do not predict an attempt index.</p>
-          </div>
-          <div className="rounded-2xl bg-elevated p-4">
-            <div className="text-xs font-black text-ink">2 · Generator simulation</div>
-            <p className="mt-2 text-xs leading-5 text-muted">Python uses those frozen weights to sample independent tickets. The observed count and first hit are random; the expected count is the stable model result.</p>
-          </div>
-          <div className="rounded-2xl bg-elevated p-4">
-            <div className="text-xs font-black text-ink">3 · Real predictive evidence</div>
-            {walkForwardModel && randomComparison ? (
-              <p className="mt-2 text-xs leading-5 text-muted">
-                On {formatEnglishNumber(backtestEvidence.evaluated_draws)} unseen historical draws, frozen sklearn averaged <span className="font-black text-ink">{Number(walkForwardModel.hits_at_6).toFixed(3)}</span> top-6 hits versus <span className="font-black text-ink">{Number(randomComparison.random_mean).toFixed(3)}</span> for random. p={Number.isFinite(backtestPValue) ? backtestPValue.toFixed(4) : '—'}; {backtestPValue < 0.05 ? 'the stored test crossed the 5% threshold.' : 'no confirmed edge at the 5% threshold.'}
-              </p>
-            ) : (
-              <p className="mt-2 text-xs leading-5 text-muted">Open the walk-forward report to evaluate predictions made only from data available before each draw.</p>
-            )}
-          </div>
-        </div>
+        <MetricGrid>
+          <MetricCard label="1 · ML inference" value="Weights" detail="sklearn and LSTM score numbers. They do not pick an attempt index." />
+          <MetricCard label="2 · Generator simulation" value="Tickets" detail="Frozen weights sample independent lines. Expected count is stable; seeded hits vary." />
+          <MetricCard
+            label="3 · Walk-forward"
+            value={walkForwardModel ? Number(walkForwardModel.hits_at_6).toFixed(3) : 'Open report'}
+            detail={walkForwardModel && randomComparison
+              ? `${formatEnglishNumber(backtestEvidence.evaluated_draws)} draws · random ${Number(randomComparison.random_mean).toFixed(3)} · p ${Number.isFinite(backtestPValue) ? backtestPValue.toFixed(4) : '—'}`
+              : 'Evaluate predictions made only from data available before each draw.'}
+          />
+        </MetricGrid>
       </Panel>
 
       {error ? (
         <div className="rounded-2xl border border-coral/25 bg-coral/5 px-5 py-4 text-sm font-bold text-coral">{error}</div>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(24rem,.9fr)]">
-        <Panel
-          title="1 · Target extraction"
-          icon={Target}
-          action={
-            <button type="button" onClick={useLatest} disabled={!latestDraw || running} className="inline-flex items-center gap-2 rounded-full bg-elevated px-3 py-2 text-xs font-bold text-ink hover:text-primary disabled:opacity-40">
-              <RefreshCw size={14} /> Use latest
-            </button>
-          }
-        >
-          {loadingLatest ? <LoadingBlock rows={5} /> : (
-            <div className="grid gap-5">
-              <label className="grid gap-2">
-                <span className="text-xs font-bold text-muted">Paste six numbers with dots, commas, or spaces</span>
-                <input
-                  value={targetText}
-                  onChange={(event) => {
-                    setTargetText(event.target.value);
-                    setResult(null);
-                  }}
-                  disabled={running}
-                  placeholder="2 · 5 · 12 · 20 · 24 · 40"
-                  className={`w-full rounded-2xl border bg-field px-4 py-3 text-base font-black tabular-nums text-ink ${target.valid ? 'border-line focus:border-primary' : 'border-coral/40'}`}
-                />
-              </label>
-              <NumberGridPicker
-                label="target"
-                selected={target.numbers}
-                onToggle={toggleTargetNumber}
-                disabled={running}
-                maxPick={6}
-                minPick={6}
-                pool={49}
-                columns={7}
-                showQuickPick={false}
-                compact
-              />
-              <div className={`rounded-2xl px-4 py-3 text-xs font-bold ${target.valid ? 'bg-teal/10 text-teal' : 'bg-coral/10 text-coral'}`}>
-                {target.valid ? 'Valid target · exact unordered combination' : 'Enter exactly six different numbers from 1 to 49.'}
-              </div>
-            </div>
-          )}
-        </Panel>
-
-        <Panel title="2 · Experiment setup" icon={Gauge}>
-          <div className="grid gap-5">
-            <div>
-              <div className="text-xs font-bold text-muted">Generated-ticket budget</div>
-              <p className="mt-1 text-[11px] leading-5 text-muted">Every selected model receives this many independent six-number ticket attempts.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {ATTEMPT_PRESETS.map((preset) => (
-                  <button
-                    key={preset.value}
-                    type="button"
-                    disabled={running}
-                    onClick={() => {
-                      setAttemptLimit(preset.value);
+      <section className="dash-extra dash-extra--split">
+        {loadingLatest ? (
+          <div className="ticket-stack"><LoadingBlock rows={8} /></div>
+        ) : (
+          <div className="ticket-stack">
+            <TicketPickSection
+              label="A"
+              numbers={target.numbers}
+              pool={49}
+              pick={6}
+              maxPick={6}
+              onToggle={toggleTargetNumber}
+              onQuickPick={quickPickTarget}
+              onClear={clearTarget}
+              onGenerate={generateTarget}
+              disabled={running}
+              showCost={false}
+              footerExtra={
+                <>
+                  <TicketStatus ok={target.valid}>
+                    {target.valid ? 'Valid target · exact unordered combination' : 'Enter exactly six different numbers from 1 to 49.'}
+                  </TicketStatus>
+                  <TicketPasteField
+                    value={targetText}
+                    onChange={(event) => {
+                      setTargetText(event.target.value);
                       setResult(null);
                     }}
-                    className={`rounded-full px-3.5 py-2 text-xs font-black ${Number(attemptLimit) === preset.value ? 'bg-primary text-field' : 'bg-elevated text-muted hover:text-ink'}`}
+                    disabled={running}
+                    valid={target.valid}
+                    onUseLatest={useLatest}
+                    latestDisabled={!latestDraw}
+                  />
+                </>
+              }
+            />
+          </div>
+        )}
+
+        <section className="chart-card">
+          <header className="chart-card__head">
+            <h2>Experiment setup</h2>
+            <p>Budget, seed, and which generators to run.</p>
+          </header>
+          <div className="grid gap-4">
+            <MetricGrid wide>
+              <MetricCard label="Ticket budget" value={formatAttempts(attemptLimit)} detail="Independent attempts per selected model">
+                <div className="choice-row">
+                  {ATTEMPT_PRESETS.map((preset) => (
+                    <ChoiceChip
+                      key={preset.value}
+                      disabled={running}
+                      active={Number(attemptLimit) === preset.value}
+                      onClick={() => {
+                        setAttemptLimit(preset.value);
+                        setResult(null);
+                      }}
+                    >
+                      {preset.label}
+                    </ChoiceChip>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  max={MAX_ATTEMPTS}
+                  step="1"
+                  value={attemptLimit}
+                  disabled={running}
+                  onChange={(event) => {
+                    setAttemptLimit(Math.min(MAX_ATTEMPTS, Math.max(1, Number(event.target.value) || 1)));
+                    setResult(null);
+                  }}
+                  className="w-full rounded-full border border-line bg-field px-3 py-2 text-sm font-bold tabular-nums text-ink"
+                />
+              </MetricCard>
+
+              <MetricCard label="Seed" value={seed || 'Auto'} detail="Optional; returned after every run">
+                <input
+                  inputMode="numeric"
+                  value={seed}
+                  disabled={running}
+                  onChange={(event) => setSeed(event.target.value.replace(/\D/g, ''))}
+                  placeholder="Automatic random seed"
+                  className="w-full rounded-full border border-line bg-field px-3 py-2 text-sm font-bold tabular-nums text-ink"
+                />
+              </MetricCard>
+            </MetricGrid>
+
+            <MetricCard label="Generators" value={`${selectedModels.length} selected`} detail="Toggle which models run against the target">
+              <div className="choice-row">
+                <ChoiceChip disabled={running} onClick={() => setSelectedModels(MODEL_OPTIONS.map((model) => model.key))}>All</ChoiceChip>
+                <ChoiceChip disabled={running} onClick={() => setSelectedModels([])}>Clear</ChoiceChip>
+                {MODEL_OPTIONS.map((model) => (
+                  <ChoiceChip
+                    key={model.key}
+                    title={model.family}
+                    disabled={running}
+                    active={selectedModels.includes(model.key)}
+                    onClick={() => toggleModel(model.key)}
                   >
-                    {preset.label}
-                  </button>
+                    {model.label}
+                  </ChoiceChip>
                 ))}
               </div>
-              <input
-                type="number"
-                min="1"
-                max={MAX_ATTEMPTS}
-                step="1"
-                value={attemptLimit}
-                disabled={running}
-                onChange={(event) => {
-                  setAttemptLimit(Math.min(MAX_ATTEMPTS, Math.max(1, Number(event.target.value) || 1)));
-                  setResult(null);
-                }}
-                className="mt-3 w-full rounded-2xl border border-line bg-field px-4 py-3 text-sm font-black tabular-nums text-ink"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-xs font-bold text-muted">Generators and models</div>
-                <div className="flex gap-2">
-                  <button type="button" disabled={running} onClick={() => setSelectedModels(MODEL_OPTIONS.map((model) => model.key))} className="text-[10px] font-black uppercase text-primary">All</button>
-                  <button type="button" disabled={running} onClick={() => setSelectedModels([])} className="text-[10px] font-black uppercase text-muted">Clear</button>
-                </div>
-              </div>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {MODEL_OPTIONS.map((model) => {
-                  const active = selectedModels.includes(model.key);
-                  return (
-                    <button
-                      key={model.key}
-                      type="button"
-                      aria-pressed={active}
-                      disabled={running}
-                      onClick={() => toggleModel(model.key)}
-                      className={`rounded-2xl border px-3 py-3 text-left transition-colors ${active ? 'border-primary/40 bg-primary/10' : 'border-line bg-elevated opacity-65 hover:opacity-100'}`}
-                    >
-                      <div className={`text-xs font-black ${active ? 'text-primary' : 'text-ink'}`}>{model.label}</div>
-                      <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-muted">{model.family}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <label className="grid gap-2">
-              <span className="text-xs font-bold text-muted">Seed <span className="font-medium">(optional; returned after every run)</span></span>
-              <input
-                inputMode="numeric"
-                value={seed}
-                disabled={running}
-                onChange={(event) => setSeed(event.target.value.replace(/\D/g, ''))}
-                placeholder="Automatic random seed"
-                className="w-full rounded-2xl border border-line bg-field px-4 py-3 text-sm font-bold tabular-nums text-ink"
-              />
-            </label>
+            </MetricCard>
 
             <button
               type="button"
               onClick={runSimulation}
               disabled={running || !target.valid || !selectedModels.length}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-black text-field transition-colors hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-black text-field transition-colors hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-40"
             >
               {running ? <Loader2 className="animate-spin" size={18} /> : <Shuffle size={18} />}
               {running ? 'Loading models and simulating…' : 'Simulate target frequency'}
             </button>
           </div>
-        </Panel>
-      </div>
+        </section>
+      </section>
 
       {running ? (
         <Panel title="Running selected models" icon={BrainCircuit} action={<Badge tone="gold">Working</Badge>}>
@@ -493,22 +455,30 @@ export function TargetSimulatorPage({ game, onGameChange, onOpenBacktest, initia
             icon={ShieldCheck}
             action={<Badge tone={result.target_matches_latest_draw ? 'teal' : 'default'}>{result.target_matches_latest_draw ? 'Latest official target' : 'Custom target'}</Badge>}
           >
-            <div className="grid gap-4 lg:grid-cols-[auto_1fr] lg:items-center">
-              <NumberRow values={result.target_numbers} size="lg" gap="gap-3" />
-              <div className="grid gap-2 text-xs text-muted sm:grid-cols-3">
-                <div className="rounded-2xl bg-elevated p-3"><span className="font-bold">Seed</span><div className="mt-1 break-all font-black text-ink">{result.seed}</div></div>
-                <div className="rounded-2xl bg-elevated p-3"><span className="font-bold">Data through</span><div className="mt-1 font-black text-ink">{formatEnglishDate(result.history_end_date)}</div></div>
-                <div className="rounded-2xl bg-elevated p-3"><span className="font-bold">Uniform space</span><div className="mt-1 font-black text-ink">{formatAttempts(result.uniform_baseline.combinations)} lines</div></div>
-              </div>
+            <div className="grid gap-3">
+              <NumberRow values={result.target_numbers} size="sm" tone="primary" />
+              <MetricGrid>
+                <MetricCard label="Seed" value={result.seed} />
+                <MetricCard label="Data through" value={formatEnglishDate(result.history_end_date)} />
+                <MetricCard label="Uniform space" value={formatAttempts(result.uniform_baseline.combinations)} detail="lines" />
+              </MetricGrid>
             </div>
             <p className="mt-4 text-xs leading-5 text-muted">The target is compared only after each current model distribution is frozen; it is not supplied as a hint when weights are calculated. Reusing the same seed reproduces the frequency and first-hit trials.</p>
           </Panel>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <MetricGrid wide>
             {result.results.map((modelResult) => (
-              <ResultCard key={modelResult.key} result={modelResult} attemptLimit={result.attempt_limit} />
+              <ResultCard key={modelResult.key} result={modelResult} attemptLimit={result.attempt_limit} targetNumbers={result.target_numbers} />
             ))}
-          </div>
+          </MetricGrid>
+
+          <section className="chart-card">
+            <header className="chart-card__head">
+              <h2>Expected vs seeded hits</h2>
+              <p>Purple is the model-expected count. Blue is the seeded random trial.</p>
+            </header>
+            <ModelCompareChart data={modelChartData(result.results)} />
+          </section>
 
           <div className="rounded-2xl border border-gold/25 bg-gold/5 p-5">
             <div className="flex items-start gap-3">
@@ -524,6 +494,6 @@ export function TargetSimulatorPage({ game, onGameChange, onOpenBacktest, initia
           </div>
         </section>
       ) : null}
-    </div>
+    </article>
   );
 }

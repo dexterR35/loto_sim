@@ -31,8 +31,8 @@ export const STRATEGIES = [
 
 export const VIEWS = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'statistics', label: '6/49 Statistical Lab', icon: FlaskConical },
-  { key: 'archive', label: 'Archive history', icon: History },
-  { key: 'target', label: 'Target Simulator', icon: Target },
-  { key: 'generator', label: 'Generator', icon: Wand2 }
+  { key: 'statistics', label: 'Lab', icon: FlaskConical },
+  { key: 'archive', label: 'Archive', icon: History },
+  { key: 'target', label: 'Target', icon: Target },
+  { key: 'generator', label: 'Generate', icon: Wand2 }
 ];

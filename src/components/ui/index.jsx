@@ -1,4 +1,5 @@
 export { Modal } from './Modal';
+export { DataTable, DEFAULT_PAGE_SIZE } from './DataTable';
 
 export function IconButton({ label, icon: Icon, className = '', ...props }) {
   return (
@@ -26,17 +27,58 @@ export function Badge({ children, tone = 'default' }) {
   return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-wide ${palette[tone]}`}>{children}</span>;
 }
 
+export function Chip({ active = false, children, className = '' }) {
+  return (
+    <span className={['choice-chip', active ? 'is-active' : '', className].filter(Boolean).join(' ')}>
+      {children}
+    </span>
+  );
+}
+
+export function ChoiceChip({ active = false, disabled = false, children, className = '', ...props }) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-pressed={active}
+      className={['choice-chip', active ? 'is-active' : '', className].filter(Boolean).join(' ')}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function MetricCard({ label, value, detail, className = '', children }) {
+  return (
+    <article className={['metric-card', className].filter(Boolean).join(' ')}>
+      {label ? <p>{label}</p> : null}
+      {value !== undefined ? <strong>{value ?? '—'}</strong> : null}
+      {detail ? <span>{detail}</span> : null}
+      {children}
+    </article>
+  );
+}
+
+export function MetricGrid({ wide = false, className = '', children }) {
+  return (
+    <div className={['metric-grid', wide ? 'metric-grid--wide' : '', className].filter(Boolean).join(' ')}>
+      {children}
+    </div>
+  );
+}
+
 export function Panel({ title, icon: Icon, action, children, className = '', bodyClassName = '' }) {
   return (
-    <section className={`grid min-w-0 gap-5 rounded-2xl border border-line bg-surface p-5 lg:p-6 ${className}`}>
-      <header className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <div className="flex min-w-0 items-center gap-2.5 text-sm font-bold text-ink">
-          {Icon ? <Icon size={18} className="shrink-0 text-primary" /> : null}
+    <section className={`chart-card ${className} ${bodyClassName}`}>
+      <header className="chart-card__head chart-card__head--row">
+        <h2 className="flex min-w-0 items-center gap-2">
+          {Icon ? <Icon size={16} className="shrink-0 text-primary" /> : null}
           <span className="truncate">{title}</span>
-        </div>
+        </h2>
         {action || null}
       </header>
-      <div className={bodyClassName}>{children}</div>
+      {children}
     </section>
   );
 }

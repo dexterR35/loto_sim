@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Calculator, Grid3x3 } from 'lucide-react';
+import { HistogramChart } from '../components/charts';
 import { AnalysisDetailModal } from '../components/lottery/AnalysisModal';
 import { NumberCalculator } from '../components/lottery/Calculator';
 import { LotterySimulator } from '../components/lottery/LotterySimulator';
+import { TicketStack } from '../components/lottery/CompactTicket';
 import { Tabs } from '../components/ui';
+import { analysisChartData } from '../lib/activity';
 
 const GENERATOR_TABS = [
-  { key: 'play', label: 'Play & Generate', icon: Grid3x3 },
-  { key: 'analyze', label: 'Analyze My Numbers', icon: Calculator }
+  { key: 'play', label: 'Generate', icon: Grid3x3 },
+  { key: 'analyze', label: 'Analyze', icon: Calculator }
 ];
 
 export function GeneratorPage({
@@ -27,6 +30,8 @@ export function GeneratorPage({
   generateMeta,
   clearTickets,
   analyzeTicket,
+  onOpenTicket,
+  onInspectNumber,
   manualNumbers,
   setManualNumbers,
   manualJoker,
@@ -46,22 +51,23 @@ export function GeneratorPage({
   const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
   const selectedTab = onTabChange ? activeTab : localTab;
   const setActiveTab = onTabChange || setLocalTab;
+  const charts = useMemo(() => analysisChartData(analysis), [analysis]);
 
   useEffect(() => {
     if (analysis) setAnalysisModalOpen(true);
   }, [analysis]);
 
-  const openAnalysis = () => {
-    if (analysis) setAnalysisModalOpen(true);
-  };
-
   const handleAnalyzeTicket = async (ticket) => {
+    if (onOpenTicket) {
+      await onOpenTicket(ticket);
+      return;
+    }
     await analyzeTicket(ticket);
     setActiveTab('analyze');
   };
 
   return (
-    <div className="grid gap-5">
+    <article className="page-stack">
       <Tabs items={GENERATOR_TABS} active={selectedTab} onChange={setActiveTab} />
 
       {selectedTab === 'play' ? (
@@ -89,7 +95,7 @@ export function GeneratorPage({
       ) : null}
 
       {selectedTab === 'analyze' ? (
-        <div className="grid max-w-4xl">
+        <section className="page-analyze">
           <NumberCalculator
             game={game}
             gameLabel={gameLabel}
@@ -103,9 +109,24 @@ export function GeneratorPage({
             analysisLoading={calcLoading}
             result={analysis}
             historyDraws={stats?.draws || 0}
-            onViewDetails={openAnalysis}
+            onViewDetails={() => analysis && setAnalysisModalOpen(true)}
           />
-        </div>
+          <aside className="page-analyze-tickets">
+            {tickets.length ? (
+              <TicketStack tickets={tickets} onNumberClick={onInspectNumber} onOpen={handleAnalyzeTicket} />
+            ) : (
+              <p className="rounded-2xl border border-dashed border-line bg-field/60 p-6 text-sm text-muted">Generate tickets first — they stay available on every page.</p>
+            )}
+            {charts.histogram.length ? (
+              <section className="chart-card">
+                <header className="chart-card__head">
+                  <h2>Archive match histogram</h2>
+                </header>
+                <HistogramChart data={charts.histogram} />
+              </section>
+            ) : null}
+          </aside>
+        </section>
       ) : null}
 
       <AnalysisDetailModal
@@ -114,6 +135,6 @@ export function GeneratorPage({
         result={analysis}
         loading={calcLoading && !analysis}
       />
-    </div>
+    </article>
   );
 }

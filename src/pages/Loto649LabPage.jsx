@@ -1,9 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Activity, BarChart3, BrainCircuit, CalendarDays, FlaskConical, History, Link2, Network, ShieldCheck, Target } from 'lucide-react';
+import { BrainCircuit, FlaskConical, Network, ShieldCheck, Target } from 'lucide-react';
+import { DashGrid } from '../components/charts';
 import { api } from '../lib/api';
+import {
+  buildActivity,
+  gapToBars,
+  numberTicket,
+  pairsToBars,
+  pairsToMix,
+  periodsToMonths,
+  rankingToBars,
+  rollingToMonths,
+  scoresToMix,
+  ticketNumberSet,
+  windowsToMix
+} from '../lib/activity';
 import { formatEnglishDate, formatEnglishNumber } from '../lib/format';
-import { NumberPill, NumberRow } from '../components/lottery';
-import { Badge, LoadingBlock, Panel, Tabs } from '../components/ui';
+import { NumberRow } from '../components/lottery';
+import { CompactTicket, TicketStack } from '../components/lottery/CompactTicket';
+import { Badge, DataTable, LoadingBlock, Tabs } from '../components/ui';
 
 const TABS = [
   { key: 'inference', label: 'Inference', icon: ShieldCheck },
@@ -17,13 +32,6 @@ function pValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return '—';
   return parsed < 0.0001 ? parsed.toExponential(2) : parsed.toFixed(4);
-}
-
-function statusTone(status) {
-  if (status === 'statistically_interesting') return 'coral';
-  if (status === 'watch' || status === 'unstable') return 'gold';
-  if (status === 'weak_signal') return 'primary';
-  return 'default';
 }
 
 function strategyLabel(name) {
@@ -40,24 +48,6 @@ function strategyLabel(name) {
 
 function predictionComponentLabel(name) {
   return name === 'monte_carlo' ? 'MC ranking component' : strategyLabel(name);
-}
-
-function Tile({ label, value, detail }) {
-  return <article className="rounded-2xl border border-line bg-elevated p-4"><div className="text-[10px] font-bold uppercase tracking-wide text-muted">{label}</div><div className="mt-2 text-xl font-bold tracking-tight text-ink">{value}</div>{detail ? <div className="mt-1 text-xs font-medium text-muted">{detail}</div> : null}</article>;
-}
-
-function TrendChart({ points = [] }) {
-  if (!points.length) return <div className="p-6 text-center text-sm text-muted">No rolling-window points.</div>;
-  const width = 620;
-  const height = 160;
-  const max = Math.max(...points.map((point) => point.rate), 0.15);
-  const path = points.map((point, index) => {
-    const x = (index / Math.max(1, points.length - 1)) * width;
-    const y = height - (point.rate / max) * (height - 16) - 8;
-    return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
-  const expectedY = height - ((6 / 49) / max) * (height - 16) - 8;
-  return <div className="overflow-hidden rounded-2xl bg-elevated p-4"><svg viewBox={`0 0 ${width} ${height}`} className="h-40 w-full" role="img" aria-label="Rolling frequency"><line x1="0" y1={expectedY} x2={width} y2={expectedY} stroke="#f3c969" strokeDasharray="7 6" /><path d={path} fill="none" stroke="var(--color-primary)" strokeWidth="3" strokeLinejoin="round" /></svg><div className="grid grid-cols-3 text-[10px] font-bold text-muted"><span>{formatEnglishDate(points[0]?.date)}</span><span className="text-center">gold line = 6/49</span><span className="text-right">{formatEnglishDate(points.at(-1)?.date)}</span></div></div>;
 }
 
 function ScoreBar({ label, value, weight }) {
@@ -90,66 +80,126 @@ function FeatureContributions({ contributions = {} }) {
   );
 }
 
-function NumberSidebar({ rows, selected, onSelect, drawCount }) {
-  const selectedRow = rows.find((row) => row.number === selected);
+function LabTickets({ tickets, selected, onSelect, numbers, children, footer }) {
+  const hints = (numbers || [])
+    .filter((row) => row.prediction_rank && row.prediction_rank <= 6)
+    .map((row) => row.number);
 
   return (
-    <aside className="min-w-0 xl:sticky xl:top-24 xl:self-start">
-      <Panel title="Number index" icon={Target} action={<Badge tone="primary">1–49</Badge>} bodyClassName="grid gap-4">
-        <p className="text-xs leading-5 text-muted">
-          Select a number to update the evidence workspace. Numbers stay in their natural order.
-        </p>
-
-        <div className="grid grid-cols-7 gap-1.5" role="group" aria-label="Select a lottery number">
-          {rows.map((row) => {
-            const active = selected === row.number;
-            const topRanked = row.prediction_rank && row.prediction_rank <= 6;
-            return (
-              <button
-                key={row.number}
-                type="button"
-                onClick={() => onSelect(row.number)}
-                aria-pressed={active}
-                aria-label={`Explore number ${row.number}`}
-                title={`Number ${row.number} · experimental rank ${row.prediction_rank || 'unavailable'}`}
-                className={`aspect-square min-w-0 rounded-full border text-xs font-bold tabular-nums transition-colors ${
-                  active
-                    ? 'border-primary bg-primary text-field'
-                    : topRanked
-                      ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15'
-                      : 'border-line bg-elevated text-muted hover:border-primary/40 hover:text-ink'
-                }`}
-              >
-                {row.number}
-              </button>
-            );
-          })}
-        </div>
-
-        <dl className="grid grid-cols-3 gap-3 border-t border-line pt-4">
-          <div>
-            <dt className="text-[9px] font-bold uppercase tracking-wide text-muted">Rank</dt>
-            <dd className="mt-1 text-sm font-bold text-ink">#{selectedRow?.prediction_rank || '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-[9px] font-bold uppercase tracking-wide text-muted">Residual</dt>
-            <dd className="mt-1 text-sm font-bold text-ink">{Number(selectedRow?.standardized_residual || 0).toFixed(2)}</dd>
-          </div>
-          <div>
-            <dt className="text-[9px] font-bold uppercase tracking-wide text-muted">Gap</dt>
-            <dd className="mt-1 text-sm font-bold text-ink">{selectedRow?.recency?.current_gap ?? '—'}</dd>
-          </div>
-        </dl>
-
-        <p className="text-[10px] leading-4 text-muted">
-          {formatEnglishNumber(drawCount)} validated draws. Mint outlines mark the current experimental Top 6, not guaranteed picks.
-        </p>
-      </Panel>
-    </aside>
+    <TicketStack
+      tickets={tickets}
+      fallbackNumbers={[selected]}
+      active={selected}
+      hints={hints}
+      onNumberClick={onSelect}
+      footer={footer}
+    >
+      {children}
+    </TicketStack>
   );
 }
 
-function InferenceBody({ tests }) {
+function LabExtra({ tickets, selected, onSelect, numbers, footer, stackExtra, children }) {
+  return (
+    <section className="dash-extra dash-extra--split">
+      <LabTickets tickets={tickets} selected={selected} onSelect={onSelect} numbers={numbers} footer={footer}>
+        {stackExtra}
+      </LabTickets>
+      {children}
+    </section>
+  );
+}
+
+function OccurrenceTable({ history }) {
+  const columns = useMemo(() => [
+    {
+      accessorKey: 'draw_date_iso',
+      header: 'Date',
+      cell: ({ row, getValue }) => (
+        <time dateTime={getValue()} className="whitespace-nowrap font-bold text-ink">
+          {formatEnglishDate(getValue() || row.original.draw_date)}
+        </time>
+      )
+    },
+    {
+      id: 'numbers',
+      header: 'Numbers',
+      enableSorting: false,
+      cell: ({ row }) => <NumberRow values={row.original.drawn_numbers || row.original.numbers || []} size="sm" />
+    }
+  ], []);
+  return (
+    <DataTable
+      data={history}
+      columns={columns}
+      empty="No occurrences for this number."
+      getRowId={(row, index) => String(row.id ?? row.draw_date_iso ?? index)}
+    />
+  );
+}
+
+function InferenceTable({ rows }) {
+  const data = useMemo(() => rows.map(([label, row]) => ({
+    label,
+    observed: Number(row?.real).toFixed(3),
+    percentile: row?.percentile_real == null ? '—' : `${(Number(row.percentile_real) * 100).toFixed(1)}%`,
+    p: pValue(row?.empirical_p_value)
+  })), [rows]);
+  const columns = useMemo(() => [
+    { accessorKey: 'label', header: 'Measurement', cell: ({ getValue }) => <span className="font-bold text-ink">{getValue()}</span> },
+    { accessorKey: 'observed', header: 'Observed' },
+    { accessorKey: 'percentile', header: 'Null percentile' },
+    { accessorKey: 'p', header: 'Empirical p' }
+  ], []);
+  return <DataTable data={data} columns={columns} empty="No simulation rows." />;
+}
+
+function RelationshipsTable({ pairs }) {
+  const columns = useMemo(() => [
+    {
+      id: 'pair',
+      header: 'Pair',
+      accessorFn: (pair) => (pair.pair || []).join('-'),
+      cell: ({ row }) => <NumberRow values={row.original.pair} size="sm" />
+    },
+    {
+      id: 'obs',
+      header: 'Obs / exp.',
+      accessorFn: (pair) => pair.observed,
+      cell: ({ row }) => <span className="font-bold">{row.original.observed} / {Number(row.original.expected).toFixed(2)}</span>
+    },
+    { accessorKey: 'lift', header: 'Lift', cell: ({ getValue }) => Number(getValue()).toFixed(2) },
+    { accessorKey: 'standardized_residual', header: 'z', cell: ({ getValue }) => Number(getValue()).toFixed(2) },
+    { accessorKey: 'adjusted_p_value', header: 'FDR q', cell: ({ getValue }) => pValue(getValue()) }
+  ], []);
+  return <DataTable data={pairs} columns={columns} empty="No pair relationships." getRowId={(row) => (row.pair || []).join('-')} />;
+}
+
+function BacktestTable({ report }) {
+  const data = useMemo(() => Object.entries(report.strategies || {}).map(([name, row]) => {
+    const comparison = report.random_comparisons?.[name];
+    return {
+      name,
+      label: strategyLabel(name),
+      hits: row.hits_at_6,
+      ndcg: row.ndcg_at_10,
+      brier: row.brier_score,
+      percentile: comparison?.percentile,
+      p: comparison?.empirical_p_value
+    };
+  }), [report]);
+  const columns = useMemo(() => [
+    { accessorKey: 'label', header: 'Strategy', cell: ({ getValue }) => <span className="font-bold capitalize">{getValue()}</span> },
+    { accessorKey: 'hits', header: 'Hits@6', cell: ({ getValue }) => Number(getValue()).toFixed(3) },
+    { accessorKey: 'ndcg', header: 'NDCG@10', cell: ({ getValue }) => Number(getValue()).toFixed(3) },
+    { accessorKey: 'brier', header: 'Brier', cell: ({ getValue }) => Number(getValue()).toFixed(4) },
+    { accessorKey: 'percentile', header: 'Random percentile', cell: ({ getValue }) => (getValue() == null ? '—' : `${(Number(getValue()) * 100).toFixed(1)}%`) },
+    { accessorKey: 'p', header: 'Empirical p', cell: ({ getValue }) => pValue(getValue()) }
+  ], []);
+  return <DataTable data={data} columns={columns} empty="No strategy rows." getRowId={(row) => row.name} />;
+}
+
+function InferenceBody({ tests, draws, stats, tickets, onInspectNumber }) {
   const global = tests.global_tests || {};
   const drift = tests.drift || {};
   const entropy = tests.entropy || {};
@@ -157,94 +207,330 @@ function InferenceBody({ tests }) {
   const autocorrelation = tests.autocorrelation || {};
   const simulation = tests.monte_carlo_null || {};
   const patterns = tests.draw_patterns || {};
-  const simulationRows = [
-    ['Global chi-square', simulation.global_chi_square],
-    ['Largest number residual', simulation.maximum_absolute_residual],
-    ['Largest pair residual', simulation.maximum_pair_absolute_residual],
-    ['Largest current gap', simulation.maximum_current_gap],
-  ];
+  const activity = buildActivity(draws, stats, tickets);
   const compatible = global.verdict === 'insufficient_evidence_against_uniform_null';
+  const periodMonths = periodsToMonths(drift.periods);
+  const simulationRows = [
+    ['Chi-square', simulation.global_chi_square],
+    ['Number residual', simulation.maximum_absolute_residual],
+    ['Pair residual', simulation.maximum_pair_absolute_residual],
+    ['Current gap', simulation.maximum_current_gap]
+  ];
 
   return (
-    <div className="grid gap-5">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Tile label="Global chi-square" value={Number(global.chi_square).toFixed(3)} detail={`${global.degrees_of_freedom} df · p ${pValue(global.p_value)}`} />
-        <Tile label="Temporal drift" value={drift.status || '—'} detail={`period test p ${pValue(drift.p_value)}`} />
-        <Tile label="Marginal entropy" value={Number(entropy.normalized_marginal).toFixed(6)} detail="1.000 is the uniform maximum" />
-        <Tile label="Adjusted secondary signals" value={`${gaps.adjusted_signals || 0} gap · ${autocorrelation.adjusted_signals || 0} autocorr.`} detail="after multiple-testing correction" />
-      </div>
-
-      <Panel title="Global inference verdict" icon={ShieldCheck}>
-        <div className={`rounded-2xl border p-5 ${compatible ? 'border-teal/25 bg-teal/5' : 'border-gold/30 bg-gold/5'}`}>
-          <div className="text-[10px] font-black uppercase tracking-wide text-muted">Null hypothesis</div>
-          <div className="mt-2 text-lg font-black text-ink">{compatible ? 'History remains compatible with a uniform 6/49 draw' : 'The global deviation requires investigation'}</div>
-          <p className="mt-2 text-sm leading-6 text-muted">{global.null_hypothesis}</p>
-          <p className="mt-2 text-xs font-bold leading-5 text-coral">{global.warning}</p>
-        </div>
-      </Panel>
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,.85fr)]">
-        <Panel title="Uniform-draw null simulation" icon={FlaskConical} action={<Badge tone="teal">inference only</Badge>}>
-          <p className="mb-4 text-xs leading-5 text-muted">{formatEnglishNumber(simulation.n_simulations)} simulated histories · {formatEnglishNumber(simulation.draws_per_simulation)} draws each · seed {simulation.random_seed}. This tests historical anomalies; it does not generate tickets.</p>
-          <div className="overflow-auto rounded-2xl border border-line">
-            <table className="w-full min-w-[560px] text-left text-sm">
-              <thead><tr className="bg-field text-[10px] uppercase tracking-wide text-muted"><th className="px-3 py-2">Measurement</th><th className="px-3 py-2">Observed</th><th className="px-3 py-2">Null percentile</th><th className="px-3 py-2">Empirical p</th></tr></thead>
-              <tbody>{simulationRows.map(([label, row]) => <tr key={label} className="border-t border-line"><td className="px-3 py-2 font-black text-ink">{label}</td><td className="px-3 py-2">{Number(row?.real).toFixed(3)}</td><td className="px-3 py-2">{row?.percentile_real == null ? '—' : `${(Number(row.percentile_real) * 100).toFixed(1)}%`}</td><td className="px-3 py-2">{pValue(row?.empirical_p_value)}</td></tr>)}</tbody>
-            </table>
-          </div>
-        </Panel>
-
-        <Panel title="Draw-pattern checks" icon={BarChart3}>
-          <div className="grid gap-3">
-            <Tile label="Odd/even distribution" value={`p ${pValue(patterns.odd_count_uniform_test?.p_value)}`} detail="uniform 6/49 combinatorial null" />
-            <Tile label="Low/high distribution" value={`p ${pValue(patterns.low_1_24_uniform_test?.p_value)}`} detail="numbers 1–24 versus 25–49" />
-            <Tile label="Mean draw sum" value={Number(patterns.sum?.mean).toFixed(2)} detail={`theoretical ${Number(patterns.sum?.theoretical_mean).toFixed(2)} · p ${pValue(patterns.sum?.mean_p_value)}`} />
-            <Tile label="Mean spread" value={Number(patterns.spread?.mean).toFixed(2)} detail={`${patterns.spread?.min} minimum · ${patterns.spread?.max} maximum`} />
-          </div>
-        </Panel>
-      </div>
-
-      <Panel title="Temporal periods" icon={History}>
-        <div className="overflow-auto rounded-2xl border border-line">
-          <table className="w-full min-w-[620px] text-left text-sm">
-            <thead><tr className="bg-field text-[10px] uppercase tracking-wide text-muted"><th className="px-3 py-2">Period</th><th className="px-3 py-2">Draws</th><th className="px-3 py-2">Jensen–Shannon vs uniform</th><th className="px-3 py-2">PSI vs uniform</th></tr></thead>
-            <tbody>{(drift.periods || []).map((period) => <tr key={period.label} className="border-t border-line"><td className="px-3 py-2 font-black text-ink">{period.label}</td><td className="px-3 py-2">{formatEnglishNumber(period.draws)}</td><td className="px-3 py-2">{Number(period.jensen_shannon_vs_uniform).toFixed(6)}</td><td className="px-3 py-2">{Number(period.psi_vs_uniform).toFixed(6)}</td></tr>)}</tbody>
-          </table>
-        </div>
-        <p className="mt-3 text-xs leading-5 text-muted">{drift.interpretation}</p>
-      </Panel>
-    </div>
+    <DashGrid
+      weeks={activity.weeks}
+      heatmapTitle="Inference activity"
+      heatmapDetail="Official draw days. Ticket numbers overlay hits when a line is active."
+      metrics={[
+        { label: 'Chi-square', value: Number(global.chi_square).toFixed(2), detail: `${global.degrees_of_freedom} df` },
+        { label: 'Global p', value: pValue(global.p_value), detail: compatible ? 'random-compatible' : 'review' },
+        { label: 'Temporal drift', value: drift.status || '—', detail: `p ${pValue(drift.p_value)}` },
+        { label: 'Entropy', value: Number(entropy.normalized_marginal).toFixed(4), detail: '1.000 is uniform max' },
+        { label: 'Gap signals', value: gaps.adjusted_signals || 0, detail: 'FDR-adjusted' },
+        { label: 'Autocorr. signals', value: autocorrelation.adjusted_signals || 0, detail: 'FDR-adjusted' },
+        { label: 'Odd / even p', value: pValue(patterns.odd_count_uniform_test?.p_value), detail: 'combinatorial null' },
+        { label: 'Mean draw sum', value: Number(patterns.sum?.mean).toFixed(1), detail: `theory ${Number(patterns.sum?.theoretical_mean).toFixed(1)}` }
+      ]}
+      weekday={activity.weekday}
+      weekdayRight={activity.selected.length ? 'Avg hits' : 'Avg sum'}
+      months={periodMonths.length ? periodMonths : activity.months}
+      monthTitle={periodMonths.length ? 'Temporal periods' : '12-month activity'}
+      monthLeft={periodMonths.length ? 'JS ×1000' : 'Draws'}
+      monthRight={periodMonths.length ? 'PSI ×100' : (activity.selected.length ? 'Ticket hits' : 'Avg sum')}
+      mix={activity.mix}
+      mixTitle="Draw mix"
+      bars={activity.numbers}
+      barsTitle="Numbers vs expected"
+      extra={(
+        <section className="dash-extra dash-extra--split">
+          <TicketStack tickets={tickets} onNumberClick={onInspectNumber} />
+          <section className="chart-card">
+            <header className="chart-card__head">
+              <h2>Global inference verdict</h2>
+              <p>{compatible ? 'History remains compatible with a uniform 6/49 draw.' : 'The global deviation requires investigation.'}</p>
+            </header>
+            <p className={`rounded-2xl border p-4 text-sm ${compatible ? 'border-teal/25 bg-teal/5' : 'border-gold/30 bg-gold/5'}`}>
+              {global.null_hypothesis} <span className="text-coral">{global.warning}</span>
+            </p>
+            <InferenceTable rows={simulationRows} />
+            <p className="text-xs text-muted">{drift.interpretation}</p>
+          </section>
+        </section>
+      )}
+    />
   );
 }
 
-function BacktestBody({ report }) {
+function NumberExplorerGrid({ detail, draws, stats, numbers, selected, onSelect, tickets, drawCount }) {
+  const activity = buildActivity(draws, stats, numberTicket(detail.number));
+  return (
+    <DashGrid
+      weeks={activity.weeks}
+      heatmapTitle={`History · number ${detail.number}`}
+      heatmapDetail="Green cells are official days when this number was drawn."
+      metrics={[
+        { label: 'Rank', value: `#${detail.prediction?.rank || '—'}`, detail: `${((detail.prediction?.modeled_probability || 0) * 100).toFixed(2)}% model score` },
+        { label: 'Observed / expected', value: `${detail.observed} / ${Number(detail.expected).toFixed(1)}`, detail: `Δ ${detail.difference > 0 ? '+' : ''}${Number(detail.difference).toFixed(1)}` },
+        { label: 'Residual', value: Number(detail.standardized_residual).toFixed(2), detail: `χ² ${Number(detail.chi_contribution).toFixed(2)}` },
+        { label: 'FDR p', value: pValue(detail.adjusted_p_value), detail: `raw ${pValue(detail.raw_p_value)}` },
+        { label: 'Current gap', value: detail.recency?.current_gap ?? '—', detail: detail.recency?.warning },
+        { label: 'Gap percentile', value: `${(Number(detail.recency?.gap_percentile) * 100).toFixed(1)}%`, detail: 'among completed gaps' },
+        { label: 'Mean gap', value: Number(detail.recency?.mean_gap || 0).toFixed(1), detail: `expected ${Number(detail.recency?.expected_mean_gap || 0).toFixed(1)}` },
+        { label: 'Max gap', value: detail.recency?.max_gap ?? '—', detail: `last ${formatEnglishDate(detail.recency?.last_appearance)}` }
+      ]}
+      weekday={activity.weekday}
+      weekdayTitle="Appearances by weekday"
+      weekdayDetail="Draws vs average hits of this number."
+      weekdayRight="Avg hits"
+      months={rollingToMonths(detail.trend?.rolling)}
+      monthTitle="Rolling 50-draw history"
+      monthLeft="Rate %"
+      monthRight="Uniform 6/49"
+      mix={windowsToMix(detail.windows)}
+      mixTitle="Frequency windows"
+      mixCaption="hits"
+      bars={gapToBars(detail.recency)}
+      barsTitle="Gap vs expected"
+      extra={(
+        <LabExtra
+          tickets={tickets}
+          selected={selected}
+          onSelect={onSelect}
+          numbers={numbers}
+          footer={<p className="ticket-summary">{formatEnglishNumber(drawCount)} draws · click any number</p>}
+        >
+          <section className="chart-card">
+            <header className="chart-card__head">
+              <h2>Occurrence history · {detail.history_count}</h2>
+              <p>{detail.confidence_interval ? `95% rate ${(detail.confidence_interval.rate_lower * 100).toFixed(2)}% — ${(detail.confidence_interval.rate_upper * 100).toFixed(2)}%.` : null}</p>
+            </header>
+            <OccurrenceTable history={detail.history || []} />
+          </section>
+        </LabExtra>
+      )}
+    />
+  );
+}
+
+function RelationshipsGrid({ detail, draws, stats, numbers, selected, onSelect, tickets, ticketSet, drawCount }) {
+  const activity = buildActivity(draws, stats, numberTicket(detail.number));
+  const lead = detail.relationships?.[0] || {};
+  return (
+    <DashGrid
+      weeks={activity.weeks}
+      heatmapTitle={`Pairs · number ${detail.number}`}
+      heatmapDetail="History of the selected number. Bars compare co-occurring partners."
+      metrics={[
+        { label: 'Pairs listed', value: detail.relationships?.length || 0, detail: 'strongest partners first' },
+        { label: 'Top lift', value: Number(lead.lift || 0).toFixed(2), detail: (lead.pair || []).join(' · ') },
+        { label: 'Top z', value: Number(lead.standardized_residual || 0).toFixed(2), detail: 'standardized residual' },
+        { label: 'FDR q', value: pValue(lead.adjusted_p_value), detail: 'leading pair' },
+        { label: 'Observed', value: lead.observed ?? '—', detail: `expected ${Number(lead.expected || 0).toFixed(1)}` },
+        { label: 'Null percentile', value: `${(Number(lead.monte_carlo_percentile || 0) * 100).toFixed(1)}%`, detail: 'uniform-draw simulation' },
+        { label: 'Current gap', value: detail.recency?.current_gap ?? '—', detail: `number ${detail.number}` },
+        { label: 'In ticket', value: ticketSet.has(detail.number) ? 'Yes' : 'No', detail: 'active generated line' }
+      ]}
+      weekday={activity.weekday}
+      weekdayRight="Avg hits"
+      months={rollingToMonths(detail.trend?.rolling)}
+      monthTitle="Rolling history"
+      monthLeft="Rate %"
+      monthRight="Uniform 6/49"
+      mix={pairsToMix(detail.relationships)}
+      mixTitle="Pair significance"
+      mixCaption="pairs"
+      bars={pairsToBars(detail.relationships)}
+      barsTitle="Partners vs expected"
+      extra={(
+        <LabExtra
+          tickets={tickets}
+          selected={selected}
+          onSelect={onSelect}
+          numbers={numbers}
+          footer={<p className="ticket-summary">{formatEnglishNumber(drawCount)} draws · click any number</p>}
+        >
+          <section className="chart-card">
+            <header className="chart-card__head">
+              <h2>Relationship table</h2>
+            </header>
+            <RelationshipsTable pairs={detail.relationships || []} />
+          </section>
+        </LabExtra>
+      )}
+    />
+  );
+}
+
+function PredictionGrid({ detail, draws, stats, numbers, selected, onSelect, tickets, drawCount, prediction, models }) {
+  const activity = buildActivity(draws, stats, [{ numbers: prediction.top_6 || [] }]);
+  return (
+    <DashGrid
+      weeks={activity.weeks}
+      heatmapTitle={`Prediction · ${formatEnglishDate(prediction.target_draw_date)}`}
+      heatmapDetail="Heatmap overlays the experimental Top 6."
+      metrics={[
+        { label: 'Snapshot', value: prediction.snapshot_status, detail: prediction.model_version },
+        { label: 'Selected rank', value: `#${detail.prediction?.rank || '—'}`, detail: `number ${detail.number}` },
+        { label: 'Model score', value: `${((detail.prediction?.modeled_probability || 0) * 100).toFixed(2)}%`, detail: 'marginal' },
+        { label: 'Confidence', value: prediction.uncertainty?.prediction_confidence ?? '—', detail: 'stability, not jackpot odds' },
+        { label: 'Disagreement', value: prediction.uncertainty?.ensemble_disagreement ?? '—', detail: 'ensemble spread' },
+        { label: 'Champion', value: models?.champion?.model_id || 'ensemble', detail: models?.champion?.status_reason || 'baseline' },
+        { label: 'Registry', value: models?.registered?.length || 0, detail: `${models?.legacy_audits?.length || 0} legacy` },
+        { label: 'PyTorch', value: models?.pytorch?.available ? 'On' : 'Off', detail: models?.pytorch?.reason || 'experimental' }
+      ]}
+      weekday={activity.weekday}
+      weekdayRight="Avg hits"
+      months={rollingToMonths(detail.trend?.rolling)}
+      monthTitle="Selected-number trend"
+      monthLeft="Rate %"
+      monthRight="Uniform 6/49"
+      mix={scoresToMix(detail.prediction?.scores)}
+      mixTitle="Score mix"
+      mixCaption="weight"
+      bars={rankingToBars(prediction.ranking)}
+      barsTitle="Top ranks vs uniform"
+      extra={(
+        <LabExtra
+          tickets={tickets}
+          selected={selected}
+          onSelect={onSelect}
+          numbers={numbers}
+          footer={<p className="ticket-summary">{formatEnglishNumber(drawCount)} draws · click any number</p>}
+          stackExtra={(
+            <CompactTicket
+              label="P"
+              numbers={prediction.top_6 || []}
+              active={selected}
+              onNumberClick={onSelect}
+              badges={<span className="ticket-panel__chip is-ready">Top 6</span>}
+              footer={<p className="ticket-summary">Experimental ranking · {formatEnglishDate(prediction.target_draw_date)}</p>}
+            />
+          )}
+        >
+          <section className="chart-card">
+            <header className="chart-card__head chart-card__head--row">
+              <h2>Model scores</h2>
+              <Badge tone={prediction.snapshot_status === 'immutable' ? 'teal' : 'gold'}>{prediction.snapshot_status}</Badge>
+            </header>
+            {Object.entries(detail.prediction?.scores || {}).map(([name, score]) => (
+              <ScoreBar key={name} label={predictionComponentLabel(name)} value={score} weight={prediction.active_weights?.[name]} />
+            ))}
+            <FeatureContributions contributions={detail.prediction?.model_feature_contributions} />
+          </section>
+        </LabExtra>
+      )}
+    />
+  );
+}
+
+function backtestBars(report) {
+  return Object.entries(report.strategies || {}).slice(0, 8).map(([name, row]) => ({
+    label: strategyLabel(name).replace(' baseline', '').slice(0, 14),
+    observed: Number(Number(row.hits_at_6).toFixed(3)),
+    expected: Number(Number(report.random_comparisons?.[name]?.random_mean || 0.735).toFixed(3))
+  }));
+}
+
+function backtestMix(report) {
+  let beat = 0;
+  let watch = 0;
+  let rest = 0;
+  for (const row of Object.values(report.random_comparisons || {})) {
+    const p = Number(row.empirical_p_value);
+    if (p < 0.05) beat += 1;
+    else if (p < 0.2) watch += 1;
+    else rest += 1;
+  }
+  const total = beat + watch + rest || 1;
+  return [
+    { key: 'beat', label: 'p < 0.05', value: beat, share: beat / total, color: 'var(--color-chart-pink)' },
+    { key: 'watch', label: 'Watch', value: watch, share: watch / total, color: 'var(--color-chart-orange)' },
+    { key: 'rest', label: 'Null-like', value: rest, share: rest / total, color: 'var(--color-chart-blue)' }
+  ];
+}
+
+function backtestMonths(report) {
+  const series = report.year_stability?.statistics || report.year_stability?.random_uniform || [];
+  const randomMean = Number(Object.values(report.random_comparisons || {})[0]?.random_mean || 0.735);
+  return series.map((row) => ({
+    label: String(row.year),
+    draws: Number((Number(row.hits_at_6) * 100).toFixed(2)),
+    secondary: Number((randomMean * 100).toFixed(2))
+  }));
+}
+
+function BacktestBody({ report, draws, stats, tickets }) {
   if (!report) return <div className="rounded-2xl border border-dashed border-line bg-field/60 p-8 text-center text-sm text-muted">Load the persisted report for the out-of-sample comparison. Computation runs only through the admin route or CLI.</div>;
   if (!Object.keys(report.strategies || {}).length) return <div className="rounded-2xl border border-dashed border-line bg-field/60 p-8 text-center text-sm text-muted">{report.message || 'No persisted report is available yet.'}</div>;
+
+  const activity = buildActivity(draws, stats, tickets);
+  const ranked = Object.entries(report.strategies || {}).sort((a, b) => Number(b[1].hits_at_6) - Number(a[1].hits_at_6));
+  const best = ranked[0] || ['—', {}];
+  const random = report.random_comparisons?.[best[0]] || {};
+  const yearMonths = backtestMonths(report);
+
   return (
-    <div className="overflow-auto">
-      <div className="mb-4 text-xs font-bold text-muted">{report.evaluated_draws} targets · {formatEnglishDate(report.first_target_date)} — {formatEnglishDate(report.last_target_date)} · seed {report.seed}</div>
-      <table className="w-full min-w-[680px] text-left text-sm">
-        <thead><tr className="bg-field text-[10px] uppercase text-muted"><th className="px-3 py-2">Strategy</th><th className="px-3 py-2">Hits@6</th><th className="px-3 py-2">NDCG@10</th><th className="px-3 py-2">Brier</th><th className="px-3 py-2">Random percentile</th><th className="px-3 py-2">Empirical p</th></tr></thead>
-        <tbody>{Object.entries(report.strategies).map(([name, row]) => { const random = report.random_comparisons?.[name]; return <tr key={name} className="border-t border-line"><td className="px-3 py-2 font-black capitalize">{strategyLabel(name)}</td><td className="px-3 py-2">{row.hits_at_6.toFixed(3)}</td><td className="px-3 py-2">{row.ndcg_at_10.toFixed(3)}</td><td className="px-3 py-2">{row.brier_score.toFixed(4)}</td><td className="px-3 py-2">{random ? `${(random.percentile * 100).toFixed(1)}%` : '—'}</td><td className="px-3 py-2">{pValue(random?.empirical_p_value)}</td></tr>; })}</tbody>
-      </table>
-      <p className="mt-4 text-xs leading-5 text-muted">{report.conclusion}</p>
-    </div>
+    <DashGrid
+      weeks={activity.weeks}
+      heatmapTitle="Walk-forward activity"
+      heatmapDetail={`${report.evaluated_draws} targets · ${formatEnglishDate(report.first_target_date)} — ${formatEnglishDate(report.last_target_date)}`}
+      metrics={[
+        { label: 'Targets', value: report.evaluated_draws, detail: `seed ${report.seed}` },
+        { label: 'Best Hits@6', value: Number(best[1].hits_at_6 || 0).toFixed(3), detail: strategyLabel(best[0]) },
+        { label: 'Random mean', value: Number(random.random_mean || 0).toFixed(3), detail: 'uniform tickets' },
+        { label: 'Best p', value: pValue(random.empirical_p_value), detail: `${((random.percentile || 0) * 100).toFixed(1)} percentile` },
+        { label: 'Best NDCG@10', value: Number(best[1].ndcg_at_10 || 0).toFixed(3), detail: 'ranking quality' },
+        { label: 'Best Brier', value: Number(best[1].brier_score || 0).toFixed(4), detail: 'lower is better' },
+        { label: 'Strategies', value: Object.keys(report.strategies).length, detail: 'walk-forward' },
+        { label: 'Mode', value: 'Expanding', detail: report.mode?.replaceAll('_', ' ') || 'draw by draw' }
+      ]}
+      weekday={activity.weekday}
+      weekdayRight={activity.selected.length ? 'Avg hits' : 'Avg sum'}
+      months={yearMonths.length ? yearMonths : activity.months}
+      monthTitle={yearMonths.length ? 'Year Hits@6' : '12-month activity'}
+      monthLeft={yearMonths.length ? 'Hits@6 %' : 'Draws'}
+      monthRight={yearMonths.length ? 'Random %' : (activity.selected.length ? 'Ticket hits' : 'Avg sum')}
+      mix={backtestMix(report)}
+      mixTitle="Vs random"
+      mixCaption="strategies"
+      bars={backtestBars(report)}
+      barsTitle="Hits@6 vs random"
+      extra={(
+        <section className="dash-extra chart-card">
+          <header className="chart-card__head">
+            <h2>Strategy table</h2>
+            <p>{report.conclusion}</p>
+          </header>
+          <BacktestTable report={report} />
+        </section>
+      )}
+    />
   );
 }
 
-export function Loto649LabPage({ game, onGameChange, activeTab = 'inference', onTabChange }) {
+export function Loto649LabPage({ game, onGameChange, activeTab = 'inference', onTabChange, tickets = [], recentDraws = [], stats = null, selectedNumber, onSelectNumber }) {
   const [numbersPayload, setNumbersPayload] = useState(null);
   const [tests, setTests] = useState(null);
   const [prediction, setPrediction] = useState(null);
   const [models, setModels] = useState(null);
   const [detail, setDetail] = useState(null);
-  const [selected, setSelected] = useState(1);
+  const [selected, setSelected] = useState(selectedNumber || 0);
   const [localTab, setLocalTab] = useState(activeTab);
   const [backtest, setBacktest] = useState(null);
   const [backtestLoading, setBacktestLoading] = useState(false);
   const [error, setError] = useState('');
   const tab = onTabChange ? activeTab : localTab;
   const setTab = onTabChange || setLocalTab;
+
+  useEffect(() => {
+    if (selectedNumber) setSelected(selectedNumber);
+  }, [selectedNumber]);
+
+  const selectNumber = (number) => {
+    setSelected(number);
+    onSelectNumber?.(number);
+  };
 
   useEffect(() => {
     if (game !== '6din49') return;
@@ -260,7 +546,7 @@ export function Loto649LabPage({ game, onGameChange, activeTab = 'inference', on
       setTests(statisticalTests);
       setPrediction(predicted);
       setModels(registry);
-      setSelected(predicted.ranking?.[0]?.number || 1);
+      setSelected((current) => current || predicted.ranking?.[0]?.number || 1);
     }).catch((err) => { if (err.name !== 'AbortError') setError(err.message); });
     return () => controller.abort();
   }, [game]);
@@ -279,6 +565,7 @@ export function Loto649LabPage({ game, onGameChange, activeTab = 'inference', on
     const rows = numbersPayload?.numbers?.slice() || [];
     return rows.sort((a, b) => a.number - b.number);
   }, [numbersPayload]);
+  const ticketSet = useMemo(() => ticketNumberSet(tickets), [tickets]);
 
   const loadBacktest = () => {
     setBacktestLoading(true);
@@ -293,102 +580,40 @@ export function Loto649LabPage({ game, onGameChange, activeTab = 'inference', on
   if (!numbersPayload || !tests || !prediction) return <LoadingBlock rows={10} />;
 
   return (
-    <div className="grid gap-5">
-      <header className="grid gap-5 rounded-2xl border border-line bg-surface p-6 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div><div className="flex flex-wrap gap-2"><Badge tone="teal">zero leakage</Badge><Badge tone="gold">FDR preferred</Badge><Badge>6/49 only</Badge></div><h2 className="mt-4 text-3xl font-bold tracking-[-0.03em] text-ink">Statistical Lab</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">Inference, per-number evidence, relationships, prediction explanations, and honest temporal evaluation.</p></div><Tabs items={TABS} active={tab} onChange={setTab} />
+    <article className="page-stack">
+      <header className="chart-card chart-card__head--row lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <section>
+          <p className="flex flex-wrap gap-2"><Badge tone="teal">zero leakage</Badge><Badge tone="gold">FDR preferred</Badge><Badge>6/49 only</Badge></p>
+          <h2 className="mt-3 text-2xl font-bold tracking-[-0.03em] text-ink">Statistical Lab</h2>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">Inference, per-number evidence, relationships, and walk-forward evaluation. Ticket numbers stay highlighted when you have an active line.</p>
+        </section>
+        <Tabs items={TABS} active={tab} onChange={setTab} />
       </header>
 
-      {tab === 'inference' ? <InferenceBody tests={tests} /> : null}
+      {tab === 'inference' ? <InferenceBody tests={tests} draws={recentDraws} stats={stats} tickets={tickets} onInspectNumber={selectNumber} /> : null}
 
       {tab === 'backtest' ? (
-        <Panel title="Walk-forward backtesting · expanding window" icon={FlaskConical} action={<button type="button" disabled={backtestLoading} onClick={loadBacktest} className="rounded-full bg-primary px-4 py-2.5 text-xs font-bold text-field disabled:opacity-40">{backtestLoading ? 'Loading…' : backtest ? 'Reload' : 'Load persisted report'}</button>}>
-          <p className="mb-4 text-xs leading-5 text-muted">This evaluates strategies only on draws that occur after their training history. Random percentiles here are performance baselines, not the uniform-draw inference simulation.</p>
-          {backtestLoading ? <LoadingBlock rows={5} /> : <BacktestBody report={backtest} />}
-        </Panel>
+        <>
+          <section className="chart-card chart-card__head--row lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div>
+              <h2 className="text-lg font-bold text-ink">Walk-forward backtesting</h2>
+              <p className="mt-1 text-xs leading-5 text-muted">Strategies are scored only on draws after their training history. Random percentiles are performance baselines, not the uniform-draw inference simulation.</p>
+            </div>
+            <button type="button" disabled={backtestLoading} onClick={loadBacktest} className="rounded-full bg-primary px-4 py-2.5 text-xs font-bold text-field disabled:opacity-40">{backtestLoading ? 'Loading…' : backtest ? 'Reload' : 'Load persisted report'}</button>
+          </section>
+          {backtestLoading ? <LoadingBlock rows={8} /> : <BacktestBody report={backtest} draws={recentDraws} stats={stats} tickets={tickets} />}
+        </>
       ) : null}
 
       {['number', 'relationships', 'prediction'].includes(tab) ? (
-        <div className="grid gap-5 xl:grid-cols-[21rem_minmax(0,1fr)] xl:items-start">
-          <NumberSidebar rows={numbers} selected={selected} onSelect={setSelected} drawCount={numbersPayload.draw_count} />
-
-          {!detail ? <LoadingBlock rows={8} /> : (
-            <div className="grid min-w-0 gap-5">
-              {tab === 'prediction' ? (
-                <Panel title={`Immutable prediction snapshot · ${formatEnglishDate(prediction.target_draw_date)}`} icon={BrainCircuit} action={<Badge tone={prediction.snapshot_status === 'immutable' ? 'teal' : 'gold'}>{prediction.snapshot_status}</Badge>}>
-                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4"><div className="text-[10px] font-black uppercase tracking-wide text-primary">Top 6 by experimental rank</div><div className="mt-3"><NumberRow values={prediction.top_6} size="lg" /></div><p className="mt-3 text-xs leading-5 text-muted">A ranking snapshot is not a jackpot probability or guarantee.</p></div>
-                  <div className="mt-4 overflow-auto rounded-2xl border border-line"><table className="w-full min-w-[560px] text-left text-sm"><thead><tr className="bg-field text-[10px] uppercase tracking-wide text-muted"><th className="px-3 py-2">Rank</th><th className="px-3 py-2">Number</th><th className="px-3 py-2">Marginal model score</th><th className="px-3 py-2">Primary factor</th></tr></thead><tbody>{prediction.ranking.slice(0, 10).map((row) => <tr key={row.number} className="border-t border-line"><td className="px-3 py-2 font-black">#{row.rank}</td><td className="px-3 py-2"><NumberPill value={row.number} size="sm" /></td><td className="px-3 py-2 font-black text-primary">{(row.modeled_probability * 100).toFixed(2)}%</td><td className="px-3 py-2 text-xs font-semibold text-muted">{row.main_positive_factors?.[0]}</td></tr>)}</tbody></table></div>
-                </Panel>
-              ) : null}
-
-              {tab === 'number' ? (
-                <div className="grid gap-5 2xl:grid-cols-12">
-                  <Panel className="2xl:col-span-12" title={`Number ${detail.number} evidence`} icon={Activity} action={<Badge tone={statusTone(detail.status)}>{detail.status}</Badge>}>
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                      <Tile label="Prediction rank" value={`#${detail.prediction?.rank || '—'}`} detail={`${((detail.prediction?.modeled_probability || 0) * 100).toFixed(2)}% modeled marginal score`} />
-                      <Tile label="Observed / expected" value={`${detail.observed} / ${detail.expected.toFixed(1)}`} detail={`Δ ${detail.difference > 0 ? '+' : ''}${detail.difference.toFixed(1)} (${detail.deviation_pct.toFixed(2)}%)`} />
-                      <Tile label="Standardized residual" value={detail.standardized_residual.toFixed(3)} detail={`χ² contribution ${detail.chi_contribution.toFixed(3)}`} />
-                      <Tile label="FDR-adjusted p" value={pValue(detail.adjusted_p_value)} detail={`raw p ${pValue(detail.raw_p_value)}`} />
-                    </div>
-                    <p className="mt-4 border-l-2 border-primary bg-field/60 px-4 py-3 text-xs leading-5 text-muted">
-                      <strong className="text-ink">95% interval:</strong> rate {(detail.confidence_interval.rate_lower * 100).toFixed(2)}% — {(detail.confidence_interval.rate_upper * 100).toFixed(2)}%. Adjusted significance does not imply a probability of winning.
-                    </p>
-                  </Panel>
-
-                  <Panel className="2xl:col-span-7" title="Rolling 50-draw frequency" icon={BarChart3}>
-                    <TrendChart points={detail.trend.rolling} />
-                  </Panel>
-
-                  <Panel className="2xl:col-span-5" title="Recency and gap" icon={CalendarDays}>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Tile label="Current gap" value={detail.recency.current_gap} />
-                      <Tile label="Gap percentile" value={`${(detail.recency.gap_percentile * 100).toFixed(1)}%`} />
-                      <Tile label="Mean gap" value={detail.recency.mean_gap?.toFixed(2) || '—'} />
-                      <Tile label="Maximum gap" value={detail.recency.max_gap} />
-                    </div>
-                    <p className="mt-3 text-xs leading-5 text-muted">{detail.recency.warning}</p>
-                  </Panel>
-
-                  <Panel className="2xl:col-span-5" title="Frequency windows" icon={History}>
-                    <div className="overflow-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead><tr className="text-[10px] uppercase text-muted"><th className="pb-2">Window</th><th className="pb-2">Obs.</th><th className="pb-2">Exp.</th><th className="pb-2">Rate</th></tr></thead>
-                        <tbody>{Object.entries(detail.windows).map(([window, row]) => <tr key={window} className="border-t border-line"><td className="py-2 font-black">{window}</td><td className="py-2">{row.observed}</td><td className="py-2">{Number(row.expected).toFixed(2)}</td><td className="py-2">{(Number(row.rate) * 100).toFixed(2)}%</td></tr>)}</tbody>
-                      </table>
-                    </div>
-                  </Panel>
-
-                  <Panel className="2xl:col-span-7" title={`Occurrence history · ${detail.history_count}`} icon={History}>
-                    <div className="grid max-h-72 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
-                      {detail.history.slice(0, 120).map((draw) => <time key={`${draw.id}-${draw.draw_date}`} dateTime={draw.draw_date} className="rounded-xl border border-line bg-elevated px-3 py-2 text-center text-xs font-bold text-muted">{formatEnglishDate(draw.draw_date)}</time>)}
-                    </div>
-                    {detail.history_count > 120 ? <p className="mt-3 text-xs text-muted">Showing the 120 most recent occurrences out of {detail.history_count}.</p> : null}
-                  </Panel>
-                </div>
-              ) : null}
-
-              {tab === 'relationships' ? <Panel title={`Relationships for number ${detail.number}`} icon={Link2}><div className="overflow-auto"><table className="w-full min-w-[650px] text-left text-sm"><thead><tr className="bg-field text-[10px] uppercase text-muted"><th className="px-3 py-2">Pair</th><th className="px-3 py-2">Obs / exp.</th><th className="px-3 py-2">Lift</th><th className="px-3 py-2">z</th><th className="px-3 py-2">FDR q</th><th className="px-3 py-2">Uniform-null percentile</th></tr></thead><tbody>{detail.relationships.map((pair) => <tr key={pair.pair.join('-')} className="border-t border-line"><td className="px-3 py-2"><NumberRow values={pair.pair} size="sm" /></td><td className="px-3 py-2 font-bold">{pair.observed} / {pair.expected.toFixed(2)}</td><td className="px-3 py-2">{pair.lift.toFixed(2)}</td><td className="px-3 py-2">{pair.standardized_residual.toFixed(2)}</td><td className="px-3 py-2">{pValue(pair.adjusted_p_value)}</td><td className="px-3 py-2">{(pair.monte_carlo_percentile * 100).toFixed(1)}%</td></tr>)}</tbody></table></div></Panel> : null}
-
-              {tab === 'prediction' ? (
-                <div className="grid gap-5 lg:grid-cols-2">
-                  <Panel title={`Score decomposition · number ${detail.number}`} icon={BrainCircuit}>
-                    {Object.entries(detail.prediction?.scores || {}).map(([name, score]) => <ScoreBar key={name} label={predictionComponentLabel(name)} value={score} weight={prediction.active_weights?.[name]} />)}
-                    {!Object.keys(detail.prediction?.scores || {}).length ? <p className="text-sm text-muted">No current prediction.</p> : null}
-                    <FeatureContributions contributions={detail.prediction?.model_feature_contributions} />
-                    <p className="mt-4 rounded-2xl bg-elevated p-4 text-xs leading-5 text-muted">Local contributions explain the model logit and are not causal. Neural contributions remain approximate.</p>
-                  </Panel>
-                  <Panel title="Champion / Challenger" icon={ShieldCheck}>
-                    <div className="grid gap-3">
-                      <Tile label="Champion" value={models?.champion?.model_id || 'baseline ensemble'} detail={models?.champion?.status_reason || 'No complex model passed every out-of-sample threshold.'} />
-                      <Tile label="Models in registry" value={models?.registered?.length || 0} detail={`${models?.legacy_audits?.length || 0} legacy artifacts audited separately`} />
-                      <Tile label="PyTorch experimental" value={models?.pytorch?.available ? 'available' : 'disabled'} detail={models?.pytorch?.reason} />
-                    </div>
-                  </Panel>
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
+        !detail ? <LoadingBlock rows={8} /> : tab === 'number' ? (
+          <NumberExplorerGrid detail={detail} draws={recentDraws} stats={stats} numbers={numbers} selected={selected} onSelect={selectNumber} tickets={tickets} drawCount={numbersPayload.draw_count} />
+        ) : tab === 'relationships' ? (
+          <RelationshipsGrid detail={detail} draws={recentDraws} stats={stats} numbers={numbers} selected={selected} onSelect={selectNumber} tickets={tickets} ticketSet={ticketSet} drawCount={numbersPayload.draw_count} />
+        ) : (
+          <PredictionGrid detail={detail} draws={recentDraws} stats={stats} numbers={numbers} selected={selected} onSelect={selectNumber} tickets={tickets} drawCount={numbersPayload.draw_count} prediction={prediction} models={models} />
+        )
       ) : null}
-    </div>
+    </article>
   );
 }

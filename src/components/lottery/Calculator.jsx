@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { Calculator, Search, Sparkles } from 'lucide-react';
 import { NumberPill, NumberRow } from './index';
 import { formatDrawDate } from '../../lib/format';
-import { Badge, Panel } from '../ui';
+import { Badge, DataTable, Panel } from '../ui';
 
 const SIGNAL_TONES = {
   hot: 'hot',
@@ -62,6 +63,26 @@ export function ScoreBreakdown({ components = {}, score, backtest }) {
 }
 
 export function NumberBreakdownTable({ rows = [] }) {
+  const isNoroc = rows[0]?.position != null;
+  const columns = useMemo(() => {
+    if (isNoroc) {
+      return [
+        { accessorKey: 'position', header: 'Pos', cell: ({ getValue }) => <span className="font-bold text-ink">P{getValue()}</span> },
+        { accessorKey: 'digit', header: 'Digit', cell: ({ getValue }) => <NumberPill value={getValue()} tone="bonus" size="sm" /> },
+        { accessorKey: 'count', header: 'Archive hits' },
+        { accessorKey: 'share', header: 'Share', cell: ({ getValue }) => `${getValue()}%` },
+        { accessorKey: 'signal', header: 'Signal', cell: ({ getValue }) => <Badge tone={getValue() === 'hot' ? 'coral' : getValue() === 'cold' ? 'teal' : getValue() === 'overdue' ? 'gold' : 'default'}>{getValue()}</Badge> }
+      ];
+    }
+    return [
+      { accessorKey: 'number', header: 'Number', cell: ({ row }) => <NumberPill value={row.original.number} tone={SIGNAL_TONES[row.original.signal] || 'default'} size="sm" /> },
+      { accessorKey: 'count', header: 'Archive hits' },
+      { accessorKey: 'share', header: 'Share', cell: ({ getValue }) => `${getValue()}%` },
+      { accessorKey: 'draws_since_seen', header: 'Gap' },
+      { accessorKey: 'signal', header: 'Signal', cell: ({ getValue }) => <Badge tone={getValue() === 'hot' ? 'coral' : getValue() === 'cold' ? 'teal' : getValue() === 'overdue' ? 'gold' : 'default'}>{getValue()}</Badge> }
+    ];
+  }, [isNoroc]);
+
   if (!rows.length) {
     return (
       <div className="rounded-2xl border border-dashed border-line bg-field/70 px-4 py-8 text-center text-sm text-muted">
@@ -69,47 +90,14 @@ export function NumberBreakdownTable({ rows = [] }) {
       </div>
     );
   }
-  const isNoroc = rows[0]?.position != null;
 
   return (
-    <div className="overflow-auto rounded-2xl border border-line">
-      <table className="w-full min-w-[520px] text-left text-sm">
-        <thead>
-          <tr className="bg-field text-xs uppercase tracking-wide text-muted">
-            {isNoroc ? (
-              <>
-                <th className="px-3 py-3">Pos</th>
-                <th className="px-3 py-3">Digit</th>
-              </>
-            ) : (
-              <th className="px-3 py-3">Number</th>
-            )}
-            <th className="px-3 py-3">Archive hits</th>
-            <th className="px-3 py-3">Share</th>
-            {!isNoroc ? <th className="px-3 py-3">Gap</th> : null}
-            <th className="px-3 py-3">Signal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={isNoroc ? row.position : row.number} className="border-t border-line hover:bg-field/70">
-              {isNoroc ? (
-                <>
-                  <td className="px-3 py-3 font-black text-ink">P{row.position}</td>
-                  <td className="px-3 py-3"><NumberPill value={row.digit} tone="bonus" size="sm" /></td>
-                </>
-              ) : (
-                <td className="px-3 py-3"><NumberPill value={row.number} tone={SIGNAL_TONES[row.signal] || 'default'} size="sm" /></td>
-              )}
-              <td className="px-3 py-3 font-bold text-muted">{row.count}</td>
-              <td className="px-3 py-3 font-bold text-muted">{row.share}%</td>
-              {!isNoroc ? <td className="px-3 py-3 font-bold text-muted">{row.draws_since_seen}</td> : null}
-              <td className="px-3 py-3"><Badge tone={row.signal === 'hot' ? 'coral' : row.signal === 'cold' ? 'teal' : row.signal === 'overdue' ? 'gold' : 'default'}>{row.signal}</Badge></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      data={rows}
+      columns={columns}
+      empty="No per-number breakdown available for this result."
+      getRowId={(row) => String(isNoroc ? row.position : row.number)}
+    />
   );
 }
 

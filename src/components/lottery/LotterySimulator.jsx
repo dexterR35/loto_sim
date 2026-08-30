@@ -118,7 +118,7 @@ export function LotterySimulator({
   const gameLabel = GAMES.find((item) => item.key === game)?.full || 'Simulator';
 
   return (
-    <div className="grid w-full gap-4">
+    <article className="page-stack">
       {config.hasSlipUI ? (
         <Loto649Simulator
           game={game}
@@ -154,6 +154,6 @@ export function LotterySimulator({
           generateMeta={generateMeta}
         />
       )}
-    </div>
+    </article>
   );
 }

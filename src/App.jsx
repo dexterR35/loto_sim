@@ -4,7 +4,7 @@ import { GAMES } from './lib/constants';
 import { applyGameTheme } from './lib/gameTheme';
 import { buildAppPath, normalizeStatisticsTab, parseAppRoute } from './lib/routes';
 import { isAbortError } from './lib/generation';
-import { PageHeader, Sidebar } from './components/layout';
+import { PageHeader, Sidebar, TicketRail } from './components/layout';
 import { ArchivePage } from './pages/ArchivePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { GeneratorPage } from './pages/GeneratorPage';
@@ -22,6 +22,7 @@ export default function App() {
   const [recentDraws, setRecentDraws] = useState([]);
   const [historyPayload, setHistoryPayload] = useState({ draws: [], total: 0, years: [] });
   const [historyOffset, setHistoryOffset] = useState(0);
+  const [historyLimit, setHistoryLimit] = useState(20);
   const [historyYear, setHistoryYear] = useState('');
   const [rawPreview, setRawPreview] = useState(null);
   const [tickets, setTickets] = useState([]);
@@ -35,6 +36,7 @@ export default function App() {
   const [generateMeta, setGenerateMeta] = useState(null);
   const [generatorTab, setGeneratorTab] = useState(() => initialRouteRef.current.view === 'generator' ? initialRouteRef.current.tab : 'play');
   const [statisticsTab, setStatisticsTab] = useState(() => initialRouteRef.current.view === 'statistics' ? initialRouteRef.current.tab : 'inference');
+  const [labNumber, setLabNumber] = useState(null);
   const [loading, setLoading] = useState(false);
   const [calcLoading, setCalcLoading] = useState(false);
   const [mlData, setMlData] = useState(null);
@@ -42,7 +44,6 @@ export default function App() {
 
   const generateAbortRef = useRef(null);
   const routeStateRef = useRef({ view: initialRouteRef.current.view, game: initialRouteRef.current.game });
-  const historyLimit = 60;
   const gameLabel = useMemo(() => GAMES.find((item) => item.key === game)?.full, [game]);
 
   useEffect(() => {
@@ -149,6 +150,13 @@ export default function App() {
     syncBrowserRoute(nextView, game, viewTab);
   }, [activeView, cancelGenerate, game, generatorTab, statisticsTab, syncBrowserRoute]);
 
+  const inspectNumber = useCallback((number) => {
+    const next = Number(number);
+    if (!Number.isInteger(next) || next < 1) return;
+    setLabNumber(next);
+    changeView('statistics', 'number');
+  }, [changeView]);
+
   const openTargetSimulator = useCallback((numbers) => {
     const selected = [...new Set(
       (Array.isArray(numbers) ? numbers : [])
@@ -249,10 +257,11 @@ export default function App() {
     resetGenerationState();
     setAnalysis(null);
     setRawPreview(null);
+    setHistoryOffset(0);
 
     Promise.all([
       api(`/api/stats?game=${game}`, { signal: ac.signal }),
-      api(`/api/draws?game=${game}&limit=12`, { signal: ac.signal })
+      api(`/api/draws?game=${game}&limit=400`, { signal: ac.signal })
     ])
       .then(([statsPayload, drawsPayload]) => {
         setStats(statsPayload);
@@ -274,7 +283,7 @@ export default function App() {
         if (!isAbortError(err)) setError(err.message);
       });
     return () => ac.abort();
-  }, [game, historyOffset, historyYear]);
+  }, [game, historyOffset, historyYear, historyLimit]);
 
   useEffect(() => {
     if (activeView !== 'generator') cancelGenerate();
@@ -357,9 +366,16 @@ export default function App() {
     }
   };
 
+  const openTicket = async (ticket) => {
+    setManualNumbers((ticket.numbers || []).join(', '));
+    if (ticket.joker != null && ticket.joker !== '') setManualJoker(String(ticket.joker));
+    changeGeneratorTab('analyze');
+    await analyzeTicket(ticket);
+  };
+
   return (
-    <div className="grid min-h-svh grid-cols-1 bg-field text-ink lg:grid-cols-[15rem_minmax(0,1fr)]" data-game={game}>
-      {mobileNavOpen ? <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden" onClick={() => setMobileNavOpen(false)} /> : null}
+    <div className="app-shell" data-game={game}>
+      {mobileNavOpen ? <button type="button" className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation overlay" /> : null}
       <Sidebar
         activeView={activeView}
         onViewChange={changeView}
@@ -368,7 +384,7 @@ export default function App() {
         onClose={() => setMobileNavOpen(false)}
       />
 
-      <div className="min-w-0">
+      <div className="app-main">
         <PageHeader
           activeView={activeView}
           onMenu={() => setMobileNavOpen(true)}
@@ -376,12 +392,13 @@ export default function App() {
           onGameChange={changeGame}
           loading={loading}
         />
-        <main className="mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-5 sm:py-6 lg:px-7">
+        <TicketRail tickets={tickets} game={game} onOpen={openTicket} onClear={clearTickets} onNumberClick={inspectNumber} />
+        <main className="app-page">
           {error ? (
-            <div className="mb-5 grid grid-cols-[1fr_auto] items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-sm font-bold text-primary">
+            <p className="mb-5 grid grid-cols-[1fr_auto] items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-sm font-bold text-primary">
               <span>{error}</span>
               <button type="button" onClick={() => setError('')} className="rounded-full bg-elevated px-3 py-1.5 text-xs hover:text-ink">Dismiss</button>
-            </div>
+            </p>
           ) : null}
 
           {activeView === 'dashboard' ? (
@@ -389,7 +406,10 @@ export default function App() {
               game={game}
               stats={stats}
               recentDraws={recentDraws}
+              tickets={tickets}
               onViewChange={changeView}
+              onInspectNumber={inspectNumber}
+              onOpenTicket={openTicket}
             />
           ) : null}
 
@@ -399,6 +419,11 @@ export default function App() {
               onGameChange={changeGame}
               activeTab={statisticsTab}
               onTabChange={changeStatisticsTab}
+              tickets={tickets}
+              recentDraws={recentDraws}
+              stats={stats}
+              selectedNumber={labNumber}
+              onSelectNumber={setLabNumber}
             />
           ) : null}
 
@@ -408,10 +433,16 @@ export default function App() {
               historyOffset={historyOffset}
               setHistoryOffset={setHistoryOffset}
               historyLimit={historyLimit}
+              setHistoryLimit={setHistoryLimit}
               historyYear={historyYear}
               setHistoryYear={setHistoryYear}
               rawPreview={rawPreview}
               setRawPreview={setRawPreview}
+              tickets={tickets}
+              recentDraws={recentDraws}
+              stats={stats}
+              onInspectNumber={inspectNumber}
+              onOpenTicket={openTicket}
             />
           ) : null}
 
@@ -420,7 +451,7 @@ export default function App() {
               game={game}
               onGameChange={changeGame}
               onOpenBacktest={() => changeStatisticsTab('backtest')}
-              initialNumbers={targetSimulationNumbers}
+              initialNumbers={targetSimulationNumbers.length ? targetSimulationNumbers : (tickets[0]?.numbers || [])}
             />
           ) : null}
 
@@ -442,6 +473,8 @@ export default function App() {
               generateMeta={generateMeta}
               clearTickets={clearTickets}
               analyzeTicket={analyzeTicket}
+              onOpenTicket={openTicket}
+              onInspectNumber={inspectNumber}
               manualNumbers={manualNumbers}
               setManualNumbers={setManualNumbers}
               manualJoker={manualJoker}

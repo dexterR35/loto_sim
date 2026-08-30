@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronUp, Loader2, Minus, Plus, Search, Target, Ticket } from 'lucide-react';
+import { ChevronUp, Loader2, Minus, Plus, Search, Target } from 'lucide-react';
 import {
   LOTO_649_PICK,
   LOTO_649_LINE_PRICE,
@@ -15,32 +15,23 @@ import {
   combinations,
   uniqueSortedNumbers
 } from '../../lib/loto649';
+import { TicketPanel, TicketSlip } from './Ticket';
 import { NumberGridPicker } from './NumberGridPicker';
-import { NumberPill, NumberRow } from './index';
+import { NumberPill } from './index';
 import { Badge } from '../ui';
 
-export function Loto649TicketSlip({ gameLabel = 'Loto', title = 'Ticket', subtitle = 'Combinations A · B · C', footer, children }) {
+export function Loto649TicketSlip({
+  gameLabel = 'Loto',
+  title = 'Ticket',
+  subtitle = 'Combinations A · B · C',
+  footer,
+  children,
+  columns = 3
+}) {
   return (
-    <article className="grid overflow-hidden rounded-2xl border border-line bg-surface">
-      <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 border-b border-line bg-elevated px-6 py-5">
-          <Ticket size={22} className="text-primary" />
-          <div className="min-w-0 flex-1">
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">{gameLabel}</div>
-            <div className="mt-0.5 text-xl font-bold tracking-tight text-ink sm:text-2xl">{title}</div>
-          </div>
-          <div className="rounded-full border border-line bg-surface px-4 py-2 text-xs font-bold text-muted">
-            {subtitle}
-          </div>
-      </header>
-      <div className="grid gap-4 p-4 sm:p-5 xl:grid-cols-3">
-        {children}
-      </div>
-      {footer ? (
-        <footer className="border-t border-line bg-primary/5 px-6 py-5">
-          {footer}
-        </footer>
-      ) : null}
-    </article>
+    <TicketSlip gameLabel={gameLabel} title={title} subtitle={subtitle} footer={footer} columns={columns}>
+      {children}
+    </TicketSlip>
   );
 }
 
@@ -157,14 +148,14 @@ export function JokerPanel({
       <NumberGridPicker
         label="J"
         pool={jokerPool}
-        columns={10}
+        columns={7}
         selected={selected}
         onToggle={onToggle}
         maxPick={jokerMaxPick}
         minPick={jokerMinPick}
         showQuickPick={false}
         disabled={disabled || !hasMainVariant}
-        size="default"
+        compact
         selectedTone="joker"
       />
     </div>
@@ -178,7 +169,7 @@ export function TicketPickSection({
   pool = 49,
   pick = LOTO_649_PICK,
   maxPick = 18,
-  columns = 10,
+  columns = 7,
   linePrice = LOTO_649_LINE_PRICE,
   onToggle,
   onQuickPick,
@@ -190,17 +181,19 @@ export function TicketPickSection({
   analyzingVariant,
   mlHints,
   badges,
-  footerExtra
+  footerExtra,
+  disabled = false,
+  showCost = true
 }) {
   const count = numbers.length;
   const lines = count >= pick ? combinations(count, pick) : 0;
   const cost = lines * linePrice;
   const hasTicket = count >= pick;
   const canSimulateTarget = count === pick && typeof onSimulateTarget === 'function';
-  const canAnalyze = hasTicket;
+  const canAnalyze = hasTicket && typeof onAnalyze === 'function';
 
   return (
-    <TicketSectionShell
+    <TicketPanel
       label={label}
       badges={
         <>
@@ -210,44 +203,33 @@ export function TicketPickSection({
       }
       actions={
         <>
-          <button
-            type="button"
-            onClick={onClear}
-            className="rounded-full bg-elevated px-3 py-2 text-xs font-bold text-muted transition-colors hover:text-primary"
-          >
+          <button type="button" disabled={disabled} onClick={onClear} className="ticket-btn ticket-btn--ghost">
             Clear
           </button>
-          <button
-            type="button"
-            onClick={onGenerate}
-            className="rounded-full bg-primary px-3 py-2 text-xs font-bold text-field transition-colors hover:bg-primary-light"
-          >
+          <button type="button" disabled={disabled} onClick={onGenerate} className="ticket-btn ticket-btn--primary">
             Generate {pick}
           </button>
         </>
       }
       footer={
         <>
-          {count > 0 ? (
-            <div className="flex justify-center py-2">
-              <NumberRow values={numbers} size="lg" gap="gap-2" />
-            </div>
-          ) : null}
           {hasTicket ? (
-            <div className="text-center text-sm font-bold text-muted">
-              {count} numbers · {lines} combinations · <span className="text-ink">{formatRon(cost)}</span>
-            </div>
+            <p className="ticket-summary">
+              {showCost
+                ? <>{count} numbers · {lines} combinations · <strong>{formatRon(cost)}</strong></>
+                : `${count} numbers selected`}
+            </p>
           ) : count > 0 ? (
-            <p className="text-center text-sm font-bold text-muted">Select {pick - count} more numbers</p>
+            <p className="ticket-summary">Select {pick - count} more numbers</p>
           ) : (
-            <p className="text-center text-sm font-bold text-muted">Choose {pick} numbers on the grid</p>
+            <p className="ticket-summary">Choose {pick} numbers on the grid</p>
           )}
           {canAnalyze ? (
             <button
               type="button"
               onClick={() => onAnalyze(label, numbers)}
-              disabled={analyzeLoading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
+              disabled={analyzeLoading || disabled}
+              className="ticket-btn ticket-btn--analyze"
             >
               {analyzeLoading && analyzingVariant === label ? (
                 <Loader2 className="animate-spin" size={14} />
@@ -260,8 +242,9 @@ export function TicketPickSection({
           {canSimulateTarget ? (
             <button
               type="button"
+              disabled={disabled}
               onClick={() => onSimulateTarget(numbers)}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-grape/25 bg-grape/5 px-4 py-2.5 text-sm font-bold text-grape transition-colors hover:bg-grape/10"
+              className="ticket-btn ticket-btn--target"
             >
               <Target size={14} />
               Simulate exact target
@@ -280,28 +263,11 @@ export function TicketPickSection({
         onQuickPick={onQuickPick}
         maxPick={maxPick}
         minPick={pick}
-        size="large"
+        compact
         mlHints={mlHints}
+        disabled={disabled}
       />
-    </TicketSectionShell>
-  );
-}
-
-function TicketSectionShell({ label, badges, actions, children, footer }) {
-  return (
-    <section className="grid min-w-0 grid-rows-[auto_1fr_auto] overflow-hidden rounded-2xl border border-line bg-field">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-grid h-11 w-11 place-items-center rounded-full bg-primary text-lg font-bold text-field">
-            {label}
-          </span>
-          <div className="flex flex-wrap items-center gap-1.5">{badges}</div>
-        </div>
-        {actions ? <div className="flex gap-2">{actions}</div> : null}
-      </header>
-      <div className="w-full min-w-0 p-4 sm:p-5 xl:p-4">{children}</div>
-      <footer className="grid shrink-0 gap-3 border-t border-line bg-surface/40 px-5 py-4">{footer}</footer>
-    </section>
+    </TicketPanel>
   );
 }
 
@@ -313,7 +279,7 @@ export function Loto649SlipCard({
   pool = 49,
   pick = LOTO_649_PICK,
   maxPick = 18,
-  columns = 10,
+  columns = 7,
   linePrice = LOTO_649_LINE_PRICE,
   footer,
   mlHints = [],
@@ -383,20 +349,21 @@ export function Loto649SlipCard({
   );
 }
 
-export function TicketCountControls({ ticketCount, onTicketCountChange, disabled = false }) {
+export function TicketCountControls({ ticketCount, onTicketCountChange, disabled = false, compact = false }) {
+  const size = compact ? 'h-8 w-8' : 'h-10 w-10';
   const stepper = (
     <div className="grid auto-cols-max grid-flow-col items-center gap-3">
       <button
         type="button"
         disabled={disabled}
         onClick={() => onTicketCountChange(Math.max(1, ticketCount - 1))}
-        className="inline-grid h-10 w-10 place-items-center rounded-full border border-line bg-elevated hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-40"
+        className={`inline-grid ${size} place-items-center rounded-full border border-line bg-elevated hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-40`}
         aria-label="Fewer tickets"
       >
-        <Minus size={16} />
+        <Minus size={compact ? 14 : 16} />
       </button>
       <div className="text-center">
-        <div className="text-3xl font-black text-ink">{ticketCount}</div>
+        <div className={compact ? 'text-2xl font-black text-ink' : 'text-3xl font-black text-ink'}>{ticketCount}</div>
         <div className="text-[10px] font-bold uppercase tracking-wide text-muted">
           {ticketCount === 1 ? 'ticket' : 'tickets'}
         </div>
@@ -405,16 +372,16 @@ export function TicketCountControls({ ticketCount, onTicketCountChange, disabled
         type="button"
         disabled={disabled}
         onClick={() => onTicketCountChange(Math.min(12, ticketCount + 1))}
-        className="inline-grid h-10 w-10 place-items-center rounded-full border border-line bg-elevated hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-40"
+        className={`inline-grid ${size} place-items-center rounded-full border border-line bg-elevated hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-40`}
         aria-label="More tickets"
       >
-        <Plus size={16} />
+        <Plus size={compact ? 14 : 16} />
       </button>
     </div>
   );
 
   return (
-    <div className="grid place-items-center gap-4 py-2">
+    <div className={compact ? 'grid gap-3' : 'grid place-items-center gap-4 py-2'}>
       {stepper}
       <input
         type="range"
@@ -425,7 +392,9 @@ export function TicketCountControls({ ticketCount, onTicketCountChange, disabled
         onChange={(e) => onTicketCountChange(Number(e.target.value))}
         className="w-full max-w-xs accent-primary disabled:cursor-not-allowed disabled:opacity-50"
       />
-      <p className="text-center text-xs text-muted">Combinations A · B · C (Noroc activates with a complete combination)</p>
+      {compact ? null : (
+        <p className="text-center text-xs text-muted">Combinations A · B · C (Noroc activates with a complete combination)</p>
+      )}
     </div>
   );
 }
