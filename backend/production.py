@@ -12,7 +12,7 @@ import uvicorn
 def main() -> int:
     parser = argparse.ArgumentParser(description="loto-gpt production FastAPI server")
     parser.add_argument("--host", default=os.getenv("HOST", "0.0.0.0"))
-    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "8000")))
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "8030")))
     parser.add_argument("--workers", type=int, default=int(os.getenv("WEB_WORKERS", os.getenv("WEB_THREADS", "1"))))
     args = parser.parse_args()
     print(f"loto-gpt FastAPI production server at http://{args.host}:{args.port}")

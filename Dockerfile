@@ -4,7 +4,7 @@ FROM node:22-bookworm-slim AS frontend
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY index.html vite.config.js postcss.config.js tailwind.config.js ./
+COPY index.html vite.config.js ./
 COPY src ./src
 RUN npm run build
 
@@ -32,9 +32,9 @@ COPY lottery_scraper.py ./
 COPY data ./data
 COPY --from=frontend /app/dist ./dist
 
-EXPOSE 8000
+EXPOSE 8030
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -f http://127.0.0.1:8000/api/health || exit 1
+    CMD curl -f http://127.0.0.1:8030/api/health || exit 1
 
-CMD ["python", "backend/production.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "backend/production.py", "--host", "0.0.0.0", "--port", "8030"]

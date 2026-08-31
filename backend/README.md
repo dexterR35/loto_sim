@@ -5,13 +5,13 @@ FastAPI over the local `data/lottery/lottery_history.csv` archive. The backend n
 ## Development server
 
 ```bash
-python3 backend/server.py --host 127.0.0.1 --port 8000
+python backend/server.py --host 127.0.0.1 --port 8030
 ```
 
 ## Production server
 
 ```bash
-python3 backend/production.py --host 0.0.0.0 --port 8000
+python backend/production.py --host 0.0.0.0 --port 8030
 ```
 
 Docker uses the production server by default.
@@ -21,7 +21,7 @@ Docker uses the production server by default.
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `WEB_WORKERS` | `WEB_THREADS` or `1` | Uvicorn worker processes |
-| `PORT` | `8000` | Listen port |
+| `PORT` | `8030` | Listen port |
 | `HOST` | `0.0.0.0` | Listen host |
 | `LOTO649_ADMIN_TOKEN` | unset | Enables protected update/train/backtest jobs |
 | `LOTO649_ALLOW_UNAUTHENTICATED_ADMIN` | unset | Explicit local-only bypass for protected jobs |
@@ -69,12 +69,12 @@ ML strategies for `POST /api/generate`:
 Admin requests use `X-Admin-Token`. The CLI is the preferred scheduled-job interface:
 
 ```bash
-.venv/bin/python scripts/loto649_pipeline.py update
-.venv/bin/python scripts/loto649_pipeline.py statistics --simulations 400 --seed 42
-.venv/bin/python scripts/loto649_pipeline.py backtest
-.venv/bin/python scripts/loto649_pipeline.py backtest --cached
-.venv/bin/python scripts/loto649_pipeline.py train
-.venv/bin/python scripts/loto649_pipeline.py models
+python scripts/loto649_pipeline.py update
+python scripts/loto649_pipeline.py statistics --simulations 400 --seed 42
+python scripts/loto649_pipeline.py backtest
+python scripts/loto649_pipeline.py backtest --cached
+python scripts/loto649_pipeline.py train
+python scripts/loto649_pipeline.py models
 ```
 
 `result_not_published` and `already_up_to_date` are successful no-op states. `source_error` returns CLI status 2. The service evaluates a matching immutable snapshot before appending its target draw; prediction content and evaluation content are separate artifacts.

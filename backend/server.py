@@ -1918,7 +1918,7 @@ def serve_spa(request_path: str) -> FileResponse:
 def main() -> int:
     parser = argparse.ArgumentParser(description="loto-gpt FastAPI server")
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--port", type=int, default=8030)
     args = parser.parse_args()
     import uvicorn
 
