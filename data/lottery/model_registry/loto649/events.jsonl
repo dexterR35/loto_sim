@@ -20,3 +20,5 @@
 {"event": "model_status_changed", "model_id": "sk-5cf79c0a5d5ec58046", "reason": "Rejected: random-strategy empirical p-value 0.326673 exceeds the promotion threshold 0.050000", "status": "rejected", "timestamp": "2026-09-03T20:02:49+00:00"}
 {"event": "model_registered", "model_id": "sk-5e55fbf96df72b195a", "status": "candidate", "timestamp": "2026-09-06T19:25:39+00:00"}
 {"event": "model_status_changed", "model_id": "sk-5e55fbf96df72b195a", "reason": "Rejected: random-strategy empirical p-value 0.474525 exceeds the promotion threshold 0.050000", "status": "rejected", "timestamp": "2026-09-06T19:25:39+00:00"}
+{"event": "model_registered", "model_id": "sk-c009cae663275a3a2a", "status": "candidate", "timestamp": "2026-09-10T19:57:39+00:00"}
+{"event": "model_status_changed", "model_id": "sk-c009cae663275a3a2a", "reason": "Rejected: random-strategy empirical p-value 0.473526 exceeds the promotion threshold 0.050000", "status": "rejected", "timestamp": "2026-09-10T19:57:39+00:00"}
