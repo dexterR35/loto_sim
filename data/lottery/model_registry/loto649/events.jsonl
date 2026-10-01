@@ -32,3 +32,6 @@
 {"event": "model_status_changed", "model_id": "sk-313e211d9ff3bea665", "reason": "Rejected: random-strategy empirical p-value 0.317682 exceeds the promotion threshold 0.050000", "status": "rejected", "timestamp": "2026-09-24T20:40:30+00:00"}
 {"event": "model_registered", "model_id": "sk-160244fe6e44b6e107", "status": "candidate", "timestamp": "2026-09-27T20:19:20+00:00"}
 {"event": "model_status_changed", "model_id": "sk-160244fe6e44b6e107", "reason": "Rejected: random-strategy empirical p-value 0.283716 exceeds the promotion threshold 0.050000", "status": "rejected", "timestamp": "2026-09-27T20:19:20+00:00"}
+{"event": "model_registered", "model_id": "sk-abce2dc35844690d58", "status": "candidate", "timestamp": "2026-10-01T21:56:40+00:00"}
+{"event": "model_metadata_updated", "model_id": "sk-abce2dc35844690d58", "timestamp": "2026-10-01T21:56:40+00:00", "updated_fields": ["feature_coefficients", "refit_through_date", "training_end_date", "validation_training_end_date"]}
+{"event": "model_status_changed", "model_id": "sk-abce2dc35844690d58", "reason": "Promoted after leakage audit and held-out temporal validation (NDCG@10 gain 0.070569)", "status": "production", "timestamp": "2026-10-01T21:56:40+00:00"}
