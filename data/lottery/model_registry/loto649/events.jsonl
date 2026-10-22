@@ -45,3 +45,5 @@
 {"event": "model_status_changed", "model_id": "sk-dfb0481ad88677e0f2", "reason": "Rejected: temporal NDCG@10 gain -0.008122 is below the promotion threshold", "status": "rejected", "timestamp": "2026-10-15T20:28:56+00:00"}
 {"event": "model_registered", "model_id": "sk-b4389bdf48e34eb0e2", "status": "candidate", "timestamp": "2026-10-18T19:33:17+00:00"}
 {"event": "model_status_changed", "model_id": "sk-b4389bdf48e34eb0e2", "reason": "Rejected: temporal NDCG@10 gain -0.006955 is below the promotion threshold", "status": "rejected", "timestamp": "2026-10-18T19:33:17+00:00"}
+{"event": "model_registered", "model_id": "sk-45c9888d3b2e52155e", "status": "candidate", "timestamp": "2026-10-22T20:43:25+00:00"}
+{"event": "model_status_changed", "model_id": "sk-45c9888d3b2e52155e", "reason": "Rejected: temporal NDCG@10 gain -0.002806 is below the promotion threshold", "status": "rejected", "timestamp": "2026-10-22T20:43:25+00:00"}
