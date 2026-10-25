@@ -3608,6 +3608,161 @@
         "2026-03-26",
         "2026-10-22"
       ]
+    },
+    {
+      "artifact_path": "data/lottery/ml_models/loto649_sk-7a7dc318d269714a1c.pkl",
+      "backtest_metrics": {
+        "average_rank_of_winning_numbers": 22.9527777778,
+        "brier_score": 0.1073029988,
+        "calibration_error": 0.0035195709,
+        "draws": 60,
+        "hits_at_10": 1.4333333333,
+        "hits_at_6": 0.9333333333,
+        "log_loss": 0.3710948143,
+        "ndcg_at_10": 0.2056883155,
+        "ndcg_at_6": 0.1588243825
+      },
+      "created_at": "2026-10-25T19:52:54+00:00",
+      "dataset_hash": "1ba3fb3a04a39bef75f97ec548c5161a44a87d23de978e86c2ff41d08a60d4ea",
+      "ensemble_weight_search": {
+        "method": "simplex_grid_0.1",
+        "objective": "maximize NDCG@10, then minimize Brier score",
+        "tuning_metrics": {
+          "average_rank_of_winning_numbers": 24.7222222218,
+          "brier_score": 0.1075659954,
+          "calibration_error": 0.0017568573,
+          "draws": 60,
+          "hits_at_10": 1.3166666667,
+          "hits_at_6": 0.8666666667,
+          "log_loss": 0.3722723515,
+          "ndcg_at_10": 0.1831989123,
+          "ndcg_at_6": 0.1411426353
+        },
+        "tuning_range": [
+          "2025-08-24",
+          "2026-03-26"
+        ]
+      },
+      "ensemble_weights": {
+        "monte_carlo": 0.1,
+        "sklearn": 0.9,
+        "statistics": 0.0
+      },
+      "experiment_config_hash": "1519b5463a7fd53a47b9424d7b324573230d1534b2e27d5daaba9607e505df53",
+      "experiment_id": "sk-7a7dc318d269714a1c",
+      "feature_version": "649-features-v2",
+      "git_commit": "9d1344f79e3c8d8e65cda604fb54c26308235e5c",
+      "hyperparameters": {
+        "C": 0.35,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": 0.0,
+        "max_iter": 600,
+        "n_jobs": null,
+        "penalty": "deprecated",
+        "random_state": 42,
+        "solver": "lbfgs",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "leakage_audit": {
+        "passed": true,
+        "rows_checked": 34300,
+        "rule": "history_end_date < target_date for every training and validation row"
+      },
+      "model_id": "sk-7a7dc318d269714a1c",
+      "model_only_validation_metrics": {
+        "average_rank_of_winning_numbers": 22.8722222227,
+        "brier_score": 0.1072241337,
+        "calibration_error": 0.0,
+        "draws": 60,
+        "hits_at_10": 1.4833333333,
+        "hits_at_6": 1.0,
+        "log_loss": 0.3707012873,
+        "ndcg_at_10": 0.2131983262,
+        "ndcg_at_6": 0.1677922552
+      },
+      "model_type": "sklearn_logistic_ranker",
+      "period_stability": [
+        {
+          "baseline_ndcg_at_10": 0.1709337007,
+          "draws": 30,
+          "ndcg_at_10": 0.2106587263,
+          "ndcg_gain": 0.0397250256,
+          "period": "early"
+        },
+        {
+          "baseline_ndcg_at_10": 0.116662219,
+          "draws": 30,
+          "ndcg_at_10": 0.2007179047,
+          "ndcg_gain": 0.0840556857,
+          "period": "late"
+        }
+      ],
+      "seed": 42,
+      "status": "rejected",
+      "status_reason": "Rejected: temporal NDCG@10 gain -0.017636 is below the promotion threshold",
+      "status_updated_at": "2026-10-25T19:52:54+00:00",
+      "train_range": [
+        "2019-08-29",
+        "2025-08-21"
+      ],
+      "training_end_date": "2025-08-17",
+      "training_protocol": "sklearn-temporal-v3",
+      "validation_baseline_random": {
+        "average_rank_of_winning_numbers": 25.261111111,
+        "brier_score": 0.107455227,
+        "calibration_error": 0.0,
+        "draws": 60,
+        "hits_at_10": 1.15,
+        "hits_at_6": 0.5333333333,
+        "log_loss": 0.3717761799,
+        "ndcg_at_10": 0.1412679543,
+        "ndcg_at_6": 0.0835284005
+      },
+      "validation_baseline_statistics": {
+        "average_rank_of_winning_numbers": 25.3583333328,
+        "brier_score": 0.1109083666,
+        "calibration_error": 0.0562509076,
+        "draws": 60,
+        "hits_at_10": 1.1166666667,
+        "hits_at_6": 0.55,
+        "log_loss": 0.3921319656,
+        "ndcg_at_10": 0.1437979598,
+        "ndcg_at_6": 0.0907808053
+      },
+      "validation_metrics": {
+        "average_rank_of_winning_numbers": 22.9527777778,
+        "brier_score": 0.1073029988,
+        "calibration_error": 0.0035195709,
+        "draws": 60,
+        "hits_at_10": 1.4333333333,
+        "hits_at_6": 0.9333333333,
+        "log_loss": 0.3710948143,
+        "ndcg_at_10": 0.2056883155,
+        "ndcg_at_6": 0.1588243825
+      },
+      "validation_mode": "chronological_holdout_with_walk_forward_feature_frames",
+      "validation_random_comparison": {
+        "effect_size": 2.06474275,
+        "empirical_p_value": 0.02397602,
+        "metric": "mean_hits_at_6",
+        "model_value": 0.93333333,
+        "percentile": 0.977,
+        "random_95_interval": [
+          0.55,
+          0.91666667
+        ],
+        "random_mean": 0.73131667,
+        "random_strategies": 1000
+      },
+      "validation_range": [
+        "2026-03-29",
+        "2026-10-25"
+      ]
     }
   ],
   "version": 1
