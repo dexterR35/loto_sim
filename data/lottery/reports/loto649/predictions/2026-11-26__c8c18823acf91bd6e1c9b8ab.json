@@ -1,0 +1,3005 @@
+{
+  "active_weights": {
+    "monte_carlo": 0.0,
+    "sklearn": 0.9,
+    "statistics": 0.1
+  },
+  "config": {
+    "feature_history_size": 2566,
+    "prediction_configuration": {
+      "active_weights": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.9,
+        "statistics": 0.1
+      },
+      "feature_version": "649-features-v2",
+      "model_versions": {
+        "monte_carlo": "builtin",
+        "sklearn": "sk-abce2dc35844690d58",
+        "statistics": "builtin"
+      },
+      "prediction": {
+        "save_snapshot": true,
+        "seed": 42,
+        "top_k": [
+          6,
+          10,
+          15
+        ],
+        "version": "649-ensemble-v3",
+        "weights": {
+          "lstm": 0.15,
+          "monte_carlo": 0.15,
+          "pytorch": 0.1,
+          "sklearn": 0.3,
+          "statistics": 0.3
+        }
+      }
+    },
+    "top_k": [
+      6,
+      10,
+      15
+    ],
+    "weight_source": "champion_temporal_tuning"
+  },
+  "config_fingerprint": "2aba5fc01ad030556198a3bf3725c64f83cc42566755ebadb8b5b089873ecdc2",
+  "created_at": "2026-11-22T22:41:54+00:00",
+  "dataset_version": "23e2864af7c390debb2ae43e377b8b9482e9a5444978db86fed09beb82fb72d8",
+  "disclaimer": "Experimental statistical ranking only. Romanian Loto 6/49 draws are random and no score guarantees a future result.",
+  "feature_version": "649-features-v2",
+  "history_end_date": "2026-11-22",
+  "model_version": "649-ensemble-v3",
+  "model_versions": {
+    "monte_carlo": "builtin",
+    "sklearn": "sk-abce2dc35844690d58",
+    "statistics": "builtin"
+  },
+  "prediction_id": "c8c18823acf91bd6e1c9b8ab",
+  "ranking": [
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.9,
+        "statistics": 0.080184
+      },
+      "confidence": 0.733709,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.980184,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.11558561,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": -0.07188308,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.05720408,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.05400802,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.04051117,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          }
+        ]
+      },
+      "modeled_probability": 0.26435458,
+      "number": 5,
+      "rank": 1,
+      "scores": {
+        "monte_carlo": 0.999107,
+        "sklearn": 1.0,
+        "statistics": 0.801844
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.88192,
+        "statistics": 0.020729
+      },
+      "confidence": 0.081597,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.902649,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend",
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "recent pair co-occurrence strength",
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.11954469,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.06720313,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.0545449,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.04004286,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          }
+        ]
+      },
+      "modeled_probability": 0.24719497,
+      "number": 11,
+      "rank": 2,
+      "scores": {
+        "monte_carlo": 0.462266,
+        "sklearn": 0.979911,
+        "statistics": 0.207287
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.752677,
+        "statistics": 0.058848
+      },
+      "confidence": 0.675621,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.811524,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.06593538,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": 0.06212857,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.05434388,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.22145614,
+      "number": 6,
+      "rank": 3,
+      "scores": {
+        "monte_carlo": 0.821653,
+        "sklearn": 0.836307,
+        "statistics": 0.588476
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.726499,
+        "statistics": 0.050038
+      },
+      "confidence": 0.604912,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.776537,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.11555203,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.06130486,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.21278336,
+      "number": 21,
+      "rank": 4,
+      "scores": {
+        "monte_carlo": 0.778039,
+        "sklearn": 0.807221,
+        "statistics": 0.500383
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.662689,
+        "statistics": 0.053355
+      },
+      "confidence": 0.702265,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.716045,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.0545449,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.05184958,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": 0.0464806,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.04297358,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          }
+        ]
+      },
+      "modeled_probability": 0.19683131,
+      "number": 36,
+      "rank": 5,
+      "scores": {
+        "monte_carlo": 0.769212,
+        "sklearn": 0.736322,
+        "statistics": 0.533553
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.613037,
+        "statistics": 0.088032
+      },
+      "confidence": 0.749436,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.701069,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "recent pair co-occurrence strength",
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.17709605,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.11016864,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.07776698,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.06292449,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.04906843,
+            "direction": "positive",
+            "feature": "freq_10"
+          }
+        ]
+      },
+      "modeled_probability": 0.1911354,
+      "number": 3,
+      "rank": 6,
+      "scores": {
+        "monte_carlo": 0.850443,
+        "sklearn": 0.681152,
+        "statistics": 0.880316
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.577506,
+        "statistics": 0.075251
+      },
+      "confidence": 0.859375,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.652757,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.14632404,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.07188308,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.05148368,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.05130461,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.04906843,
+            "direction": "positive",
+            "feature": "freq_10"
+          }
+        ]
+      },
+      "modeled_probability": 0.17919144,
+      "number": 7,
+      "rank": 7,
+      "scores": {
+        "monte_carlo": 0.738171,
+        "sklearn": 0.641673,
+        "statistics": 0.752511
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.535131,
+        "statistics": 0.036579
+      },
+      "confidence": 0.707232,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.57171,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.04887992,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.04297358,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": 0.03146225,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.16004345,
+      "number": 14,
+      "rank": 8,
+      "scores": {
+        "monte_carlo": 0.569555,
+        "sklearn": 0.59459,
+        "statistics": 0.365788
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.502131,
+        "statistics": 0.054437
+      },
+      "confidence": 0.667642,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.556568,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "recent pair co-occurrence strength",
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.05451065,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": 0.02860204,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02323601,
+            "direction": "positive",
+            "feature": "freq_100"
+          }
+        ]
+      },
+      "modeled_probability": 0.15517194,
+      "number": 15,
+      "rank": 9,
+      "scores": {
+        "monte_carlo": 0.797631,
+        "sklearn": 0.557923,
+        "statistics": 0.544371
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.478254,
+        "statistics": 0.058526
+      },
+      "confidence": 0.600506,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.53678,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.06219213,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.0545449,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.02574184,
+            "direction": "positive",
+            "feature": "number_norm"
+          }
+        ]
+      },
+      "modeled_probability": 0.14979893,
+      "number": 16,
+      "rank": 10,
+      "scores": {
+        "monte_carlo": 0.851245,
+        "sklearn": 0.531394,
+        "statistics": 0.58526
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.504742,
+        "statistics": 0.031096
+      },
+      "confidence": 0.686121,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.535838,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.11954469,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.03620214,
+            "direction": "negative",
+            "feature": "trend_score"
+          },
+          {
+            "contribution": 0.03330446,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.02288163,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.01538756,
+            "direction": "negative",
+            "feature": "cold_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.1509683,
+      "number": 17,
+      "rank": 11,
+      "scores": {
+        "monte_carlo": 0.522397,
+        "sklearn": 0.560825,
+        "statistics": 0.310956
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.525514,
+        "statistics": 0.0
+      },
+      "confidence": 0.317827,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.525514,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.15783025,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.09985203,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.08100727,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.07537715,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.04540172,
+            "direction": "negative",
+            "feature": "gap_norm"
+          }
+        ]
+      },
+      "modeled_probability": 0.14987943,
+      "number": 35,
+      "rank": 12,
+      "scores": {
+        "monte_carlo": 0.263296,
+        "sklearn": 0.583905,
+        "statistics": 0.0
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.456698,
+        "statistics": 0.067886
+      },
+      "confidence": 0.690904,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.524584,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.03432245,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02044628,
+            "direction": "positive",
+            "feature": "freq_250"
+          },
+          {
+            "contribution": -0.01342589,
+            "direction": "negative",
+            "feature": "pair_strength"
+          }
+        ]
+      },
+      "modeled_probability": 0.14613417,
+      "number": 13,
+      "rank": 13,
+      "scores": {
+        "monte_carlo": 0.768162,
+        "sklearn": 0.507442,
+        "statistics": 0.678859
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.457154,
+        "statistics": 0.065606
+      },
+      "confidence": 0.738633,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.52276,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.06006429,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.02484223,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02143219,
+            "direction": "positive",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": 0.02031126,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          }
+        ]
+      },
+      "modeled_probability": 0.14577615,
+      "number": 4,
+      "rank": 14,
+      "scores": {
+        "monte_carlo": 0.727622,
+        "sklearn": 0.507949,
+        "statistics": 0.656065
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.510141,
+        "statistics": 0.00726
+      },
+      "confidence": 0.417975,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.517402,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.16139605,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.15783025,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.0686449,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.0545449,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": -0.04243674,
+            "direction": "negative",
+            "feature": "trend_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.1473884,
+      "number": 1,
+      "rank": 15,
+      "scores": {
+        "monte_carlo": 0.260162,
+        "sklearn": 0.566824,
+        "statistics": 0.072602
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.469896,
+        "statistics": 0.038415
+      },
+      "confidence": 0.822528,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.508311,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.04862347,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.03660569,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02323601,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.01356962,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          }
+        ]
+      },
+      "modeled_probability": 0.14340965,
+      "number": 42,
+      "rank": 16,
+      "scores": {
+        "monte_carlo": 0.508698,
+        "sklearn": 0.522107,
+        "statistics": 0.384149
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.482511,
+        "statistics": 0.017966
+      },
+      "confidence": 0.552519,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.500477,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "large historical gap (experimental feature, not a due rule)"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.11954469,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.08100727,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.07546842,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.06908002,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.05597356,
+            "direction": "negative",
+            "feature": "gap_norm"
+          }
+        ]
+      },
+      "modeled_probability": 0.1424209,
+      "number": 26,
+      "rank": 17,
+      "scores": {
+        "monte_carlo": 0.480704,
+        "sklearn": 0.536123,
+        "statistics": 0.179661
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.366164,
+        "statistics": 0.09065
+      },
+      "confidence": 0.380882,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.456814,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.14845419,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.11555203,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.05267404,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.05149915,
+            "direction": "positive",
+            "feature": "trend_score"
+          },
+          {
+            "contribution": 0.04906843,
+            "direction": "positive",
+            "feature": "freq_10"
+          }
+        ]
+      },
+      "modeled_probability": 0.12728024,
+      "number": 20,
+      "rank": 18,
+      "scores": {
+        "monte_carlo": 0.811788,
+        "sklearn": 0.406849,
+        "statistics": 0.906499
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.357262,
+        "statistics": 0.086657
+      },
+      "confidence": 0.26106,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.443919,
+      "main_negative_factors": [
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.11016864,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.0657847,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.03626323,
+            "direction": "positive",
+            "feature": "trend_score"
+          },
+          {
+            "contribution": -0.02484223,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02323601,
+            "direction": "positive",
+            "feature": "freq_100"
+          }
+        ]
+      },
+      "modeled_probability": 0.12412236,
+      "number": 2,
+      "rank": 19,
+      "scores": {
+        "monte_carlo": 1.0,
+        "sklearn": 0.396958,
+        "statistics": 0.866572
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.404449,
+        "statistics": 0.035371
+      },
+      "confidence": 0.786411,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.43982,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.09985203,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.07297199,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": 0.03148269,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.12569905,
+      "number": 31,
+      "rank": 20,
+      "scores": {
+        "monte_carlo": 0.536764,
+        "sklearn": 0.449388,
+        "statistics": 0.353712
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.33008,
+        "statistics": 0.072251
+      },
+      "confidence": 0.509203,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.402331,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.03498519,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.02819435,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.02593648,
+            "direction": "negative",
+            "feature": "freq_250"
+          },
+          {
+            "contribution": -0.02484223,
+            "direction": "negative",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.11401625,
+      "number": 25,
+      "rank": 21,
+      "scores": {
+        "monte_carlo": 0.739222,
+        "sklearn": 0.366755,
+        "statistics": 0.722511
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.333352,
+        "statistics": 0.0492
+      },
+      "confidence": 0.646593,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.382552,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.09985203,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.0359072,
+            "direction": "positive",
+            "feature": "freq_250"
+          },
+          {
+            "contribution": 0.03081135,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.0127724,
+            "direction": "positive",
+            "feature": "ewma_frequency"
+          }
+        ]
+      },
+      "modeled_probability": 0.11004578,
+      "number": 27,
+      "rank": 22,
+      "scores": {
+        "monte_carlo": 0.671524,
+        "sklearn": 0.370391,
+        "statistics": 0.491999
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.36931,
+        "statistics": 0.01179
+      },
+      "confidence": 0.637902,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.381101,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.15783025,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.06908002,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.043858,
+            "direction": "negative",
+            "feature": "trend_score"
+          },
+          {
+            "contribution": -0.03718265,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.11159714,
+      "number": 38,
+      "rank": 23,
+      "scores": {
+        "monte_carlo": 0.17393,
+        "sklearn": 0.410345,
+        "statistics": 0.117901
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.323655,
+        "statistics": 0.049877
+      },
+      "confidence": 0.794984,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.373532,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.0686449,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.0536936,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": -0.05130461,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.03051394,
+            "direction": "positive",
+            "feature": "pair_strength"
+          }
+        ]
+      },
+      "modeled_probability": 0.1076578,
+      "number": 49,
+      "rank": 24,
+      "scores": {
+        "monte_carlo": 0.522185,
+        "sklearn": 0.359617,
+        "statistics": 0.498769
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.272798,
+        "statistics": 0.1
+      },
+      "confidence": 0.087763,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.372798,
+      "main_negative_factors": [
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "recent pair co-occurrence strength"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.11555203,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.11016864,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.0660083,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.05130461,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.03718265,
+            "direction": "positive",
+            "feature": "number_norm"
+          }
+        ]
+      },
+      "modeled_probability": 0.10488033,
+      "number": 12,
+      "rank": 25,
+      "scores": {
+        "monte_carlo": 0.958955,
+        "sklearn": 0.303109,
+        "statistics": 1.0
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.280411,
+        "statistics": 0.092045
+      },
+      "confidence": 0.176407,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.372456,
+      "main_negative_factors": [
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "recent pair co-occurrence strength"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.17709605,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.11016864,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.06730324,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.04448959,
+            "direction": "negative",
+            "feature": "freq_250"
+          },
+          {
+            "contribution": 0.04100077,
+            "direction": "positive",
+            "feature": "trend_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.10520152,
+      "number": 19,
+      "rank": 26,
+      "scores": {
+        "monte_carlo": 0.925624,
+        "sklearn": 0.311568,
+        "statistics": 0.920453
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.322089,
+        "statistics": 0.048674
+      },
+      "confidence": 0.82999,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.370763,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.08478002,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.05012695,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.04297358,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.0228443,
+            "direction": "negative",
+            "feature": "freq_250"
+          },
+          {
+            "contribution": -0.02020129,
+            "direction": "negative",
+            "feature": "chi_contribution_history"
+          }
+        ]
+      },
+      "modeled_probability": 0.10699746,
+      "number": 32,
+      "rank": 27,
+      "scores": {
+        "monte_carlo": 0.481285,
+        "sklearn": 0.357877,
+        "statistics": 0.486743
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.321565,
+        "statistics": 0.046651
+      },
+      "confidence": 0.677575,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.368216,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.09985203,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.04862347,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.02930786,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.01716844,
+            "direction": "negative",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": 0.00938902,
+            "direction": "positive",
+            "feature": "pair_strength"
+          }
+        ]
+      },
+      "modeled_probability": 0.1064373,
+      "number": 8,
+      "rank": 28,
+      "scores": {
+        "monte_carlo": 0.631813,
+        "sklearn": 0.357294,
+        "statistics": 0.466511
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.273609,
+        "statistics": 0.092549
+      },
+      "confidence": 0.177347,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.366158,
+      "main_negative_factors": [
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.11555203,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.11016864,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.10422936,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.07670468,
+            "direction": "positive",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": -0.04239355,
+            "direction": "negative",
+            "feature": "ewma_frequency"
+          }
+        ]
+      },
+      "modeled_probability": 0.10353241,
+      "number": 33,
+      "rank": 29,
+      "scores": {
+        "monte_carlo": 0.903514,
+        "sklearn": 0.30401,
+        "statistics": 0.92549
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.308407,
+        "statistics": 0.056938
+      },
+      "confidence": 0.603738,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.365345,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.04290306,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.03830801,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.02610085,
+            "direction": "negative",
+            "feature": "pair_strength"
+          },
+          {
+            "contribution": -0.02484223,
+            "direction": "negative",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.10515765,
+      "number": 10,
+      "rank": 30,
+      "scores": {
+        "monte_carlo": 0.675144,
+        "sklearn": 0.342674,
+        "statistics": 0.569385
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.275395,
+        "statistics": 0.08424
+      },
+      "confidence": 0.289123,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.359635,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "recent pair co-occurrence strength"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.08478002,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.07188308,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.06573399,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.02902867,
+            "direction": "negative",
+            "feature": "freq_250"
+          },
+          {
+            "contribution": 0.02576485,
+            "direction": "positive",
+            "feature": "trend_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.10225952,
+      "number": 18,
+      "rank": 31,
+      "scores": {
+        "monte_carlo": 0.824741,
+        "sklearn": 0.305994,
+        "statistics": 0.842404
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.287702,
+        "statistics": 0.055227
+      },
+      "confidence": 0.585593,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.342929,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.0657847,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.02353846,
+            "direction": "positive",
+            "feature": "freq_250"
+          },
+          {
+            "contribution": 0.02323601,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.0217729,
+            "direction": "negative",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": -0.00960966,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          }
+        ]
+      },
+      "modeled_probability": 0.09939817,
+      "number": 48,
+      "rank": 32,
+      "scores": {
+        "monte_carlo": 0.668542,
+        "sklearn": 0.319669,
+        "statistics": 0.552275
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.282965,
+        "statistics": 0.052746
+      },
+      "confidence": 0.723749,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.335711,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.06363528,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.04297358,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.02323601,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.01460889,
+            "direction": "negative",
+            "feature": "pair_strength"
+          },
+          {
+            "contribution": 0.01450539,
+            "direction": "positive",
+            "feature": "gap_norm"
+          }
+        ]
+      },
+      "modeled_probability": 0.09764304,
+      "number": 23,
+      "rank": 33,
+      "scores": {
+        "monte_carlo": 0.510513,
+        "sklearn": 0.314405,
+        "statistics": 0.527458
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.285086,
+        "statistics": 0.023888
+      },
+      "confidence": 0.908165,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.308974,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.13062404,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.08125914,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.04906843,
+            "direction": "positive",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": -0.02484223,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02353846,
+            "direction": "positive",
+            "feature": "freq_250"
+          }
+        ]
+      },
+      "modeled_probability": 0.09215691,
+      "number": 29,
+      "rank": 34,
+      "scores": {
+        "monte_carlo": 0.287807,
+        "sklearn": 0.316762,
+        "statistics": 0.238879
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.261656,
+        "statistics": 0.047111
+      },
+      "confidence": 0.670042,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.308768,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.04290306,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.03267597,
+            "direction": "positive",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": -0.02484223,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02260965,
+            "direction": "positive",
+            "feature": "trend_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.09090506,
+      "number": 40,
+      "rank": 35,
+      "scores": {
+        "monte_carlo": 0.569633,
+        "sklearn": 0.290729,
+        "statistics": 0.471114
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.286834,
+        "statistics": 0.019912
+      },
+      "confidence": 0.849295,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.306746,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "recent pair co-occurrence strength",
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": 0.15783025,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.09985203,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.05720408,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.0545449,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": -0.04291049,
+            "direction": "negative",
+            "feature": "trend_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.09178085,
+      "number": 45,
+      "rank": 36,
+      "scores": {
+        "monte_carlo": 0.301265,
+        "sklearn": 0.318705,
+        "statistics": 0.199116
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.215583,
+        "statistics": 0.089901
+      },
+      "confidence": 0.104504,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.305485,
+      "main_negative_factors": [
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "recent pair co-occurrence strength"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.11016864,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.08478002,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.05148368,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.04498714,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.03886888,
+            "direction": "positive",
+            "feature": "trend_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.08784095,
+      "number": 43,
+      "rank": 37,
+      "scores": {
+        "monte_carlo": 0.909676,
+        "sklearn": 0.239537,
+        "statistics": 0.899014
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.240578,
+        "statistics": 0.060402
+      },
+      "confidence": 0.488959,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.30098,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.05130461,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.02143219,
+            "direction": "positive",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": -0.02107301,
+            "direction": "negative",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": 0.01668773,
+            "direction": "positive",
+            "feature": "trend_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.08818761,
+      "number": 28,
+      "rank": 38,
+      "scores": {
+        "monte_carlo": 0.678433,
+        "sklearn": 0.267309,
+        "statistics": 0.604016
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.220695,
+        "statistics": 0.071862
+      },
+      "confidence": 0.247353,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.292557,
+      "main_negative_factors": [
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "recent pair co-occurrence strength"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.07776698,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": -0.07188308,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.05400802,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.03216052,
+            "direction": "positive",
+            "feature": "trend_score"
+          },
+          {
+            "contribution": 0.01373137,
+            "direction": "positive",
+            "feature": "cold_score"
+          }
+        ]
+      },
+      "modeled_probability": 0.08539909,
+      "number": 22,
+      "rank": 39,
+      "scores": {
+        "monte_carlo": 0.861641,
+        "sklearn": 0.245217,
+        "statistics": 0.718616
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.249616,
+        "statistics": 0.037859
+      },
+      "confidence": 0.850275,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.287474,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.09985203,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.04576327,
+            "direction": "positive",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.04297358,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.03197549,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.01761547,
+            "direction": "negative",
+            "feature": "chi_contribution_history"
+          }
+        ]
+      },
+      "modeled_probability": 0.08582742,
+      "number": 9,
+      "rank": 40,
+      "scores": {
+        "monte_carlo": 0.396315,
+        "sklearn": 0.277351,
+        "statistics": 0.378587
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.25701,
+        "statistics": 0.025137
+      },
+      "confidence": 0.715215,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.282147,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "large historical gap (experimental feature, not a due rule)",
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.16139605,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.08125914,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.05274871,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.0338403,
+            "direction": "negative",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.08509409,
+      "number": 24,
+      "rank": 41,
+      "scores": {
+        "monte_carlo": 0.477825,
+        "sklearn": 0.285567,
+        "statistics": 0.251368
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.224842,
+        "statistics": 0.048701
+      },
+      "confidence": 0.538404,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.273543,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.03830801,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.02484223,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02215258,
+            "direction": "positive",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.01992189,
+            "direction": "negative",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": -0.01430102,
+            "direction": "negative",
+            "feature": "number_norm"
+          }
+        ]
+      },
+      "modeled_probability": 0.08163364,
+      "number": 30,
+      "rank": 42,
+      "scores": {
+        "monte_carlo": 0.642758,
+        "sklearn": 0.249824,
+        "statistics": 0.487005
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.188211,
+        "statistics": 0.077442
+      },
+      "confidence": 0.232326,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.265653,
+      "main_negative_factors": [
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "recent pair co-occurrence strength"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.07188308,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.05400802,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.05130461,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.04906843,
+            "direction": "positive",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": -0.04576327,
+            "direction": "negative",
+            "feature": "number_norm"
+          }
+        ]
+      },
+      "modeled_probability": 0.07809272,
+      "number": 41,
+      "rank": 43,
+      "scores": {
+        "monte_carlo": 0.783653,
+        "sklearn": 0.209124,
+        "statistics": 0.77442
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.185756,
+        "statistics": 0.070974
+      },
+      "confidence": 0.305436,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.256731,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend",
+        "recent pair co-occurrence strength"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.06371463,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.05434388,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.05400802,
+            "direction": "positive",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.07609875,
+      "number": 44,
+      "rank": 44,
+      "scores": {
+        "monte_carlo": 0.733595,
+        "sklearn": 0.206396,
+        "statistics": 0.709745
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.200423,
+        "statistics": 0.053854
+      },
+      "confidence": 0.476709,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.254277,
+      "main_negative_factors": [
+        "historical signals remain weak and non-causal"
+      ],
+      "main_positive_factors": [
+        "recent frequency above its long-run uniform rate",
+        "positive recent-versus-long trend"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.07776698,
+            "direction": "negative",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": -0.03359753,
+            "direction": "negative",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": 0.03051394,
+            "direction": "positive",
+            "feature": "pair_strength"
+          },
+          {
+            "contribution": -0.02574184,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.01992189,
+            "direction": "negative",
+            "feature": "chi_contribution_history"
+          }
+        ]
+      },
+      "modeled_probability": 0.07634197,
+      "number": 34,
+      "rank": 45,
+      "scores": {
+        "monte_carlo": 0.656534,
+        "sklearn": 0.222693,
+        "statistics": 0.538541
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.193334,
+        "statistics": 0.052388
+      },
+      "confidence": 0.620541,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.245722,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.05012695,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": 0.04906843,
+            "direction": "positive",
+            "feature": "freq_10"
+          },
+          {
+            "contribution": -0.04004286,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.02593648,
+            "direction": "negative",
+            "feature": "freq_250"
+          },
+          {
+            "contribution": -0.02484223,
+            "direction": "negative",
+            "feature": "freq_25"
+          }
+        ]
+      },
+      "modeled_probability": 0.07418577,
+      "number": 39,
+      "rank": 46,
+      "scores": {
+        "monte_carlo": 0.45729,
+        "sklearn": 0.214816,
+        "statistics": 0.523879
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.187256,
+        "statistics": 0.053366
+      },
+      "confidence": 0.579773,
+      "confidence_label": "medium",
+      "explanation_is_approximate": false,
+      "final_score": 0.240622,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.06908002,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.06384631,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.03432245,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.02808252,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": 0.02143219,
+            "direction": "positive",
+            "feature": "freq_10"
+          }
+        ]
+      },
+      "modeled_probability": 0.07280468,
+      "number": 37,
+      "rank": 47,
+      "scores": {
+        "monte_carlo": 0.504412,
+        "sklearn": 0.208062,
+        "statistics": 0.533658
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.151965,
+        "statistics": 0.006291
+      },
+      "confidence": 0.800929,
+      "confidence_label": "high",
+      "explanation_is_approximate": false,
+      "final_score": 0.158256,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "weak recent-versus-long trend"
+      ],
+      "main_positive_factors": [
+        "ensemble ranking consensus"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.22294006,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": 0.11954469,
+            "direction": "positive",
+            "feature": "freq_50"
+          },
+          {
+            "contribution": -0.06292449,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": 0.0545449,
+            "direction": "positive",
+            "feature": "freq_25"
+          },
+          {
+            "contribution": -0.05409081,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          }
+        ]
+      },
+      "modeled_probability": 0.05374623,
+      "number": 47,
+      "rank": 48,
+      "scores": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.16885,
+        "statistics": 0.062908
+      }
+    },
+    {
+      "blend_contributions": {
+        "monte_carlo": 0.0,
+        "sklearn": 0.0,
+        "statistics": 0.053774
+      },
+      "confidence": 0.268325,
+      "confidence_label": "low",
+      "explanation_is_approximate": false,
+      "final_score": 0.053774,
+      "main_negative_factors": [
+        "recent frequency below its long-run uniform rate",
+        "high model disagreement"
+      ],
+      "main_positive_factors": [
+        "no single dominant positive factor"
+      ],
+      "model_feature_contributions": {
+        "sklearn": [
+          {
+            "contribution": -0.06908002,
+            "direction": "negative",
+            "feature": "freq_100"
+          },
+          {
+            "contribution": -0.06006429,
+            "direction": "negative",
+            "feature": "number_norm"
+          },
+          {
+            "contribution": -0.04451283,
+            "direction": "negative",
+            "feature": "gap_percentile"
+          },
+          {
+            "contribution": -0.01947625,
+            "direction": "negative",
+            "feature": "chi_contribution_history"
+          },
+          {
+            "contribution": 0.01274342,
+            "direction": "positive",
+            "feature": "gap_norm"
+          }
+        ]
+      },
+      "modeled_probability": 0.02403975,
+      "number": 46,
+      "rank": 49,
+      "scores": {
+        "monte_carlo": 0.54858,
+        "sklearn": 0.0,
+        "statistics": 0.53774
+      }
+    }
+  ],
+  "ranking_1_49": [
+    5,
+    11,
+    6,
+    21,
+    36,
+    3,
+    7,
+    14,
+    15,
+    16,
+    17,
+    35,
+    13,
+    4,
+    1,
+    42,
+    26,
+    20,
+    2,
+    31,
+    25,
+    27,
+    38,
+    49,
+    12,
+    19,
+    32,
+    8,
+    33,
+    10,
+    18,
+    48,
+    23,
+    29,
+    40,
+    45,
+    43,
+    28,
+    22,
+    9,
+    24,
+    30,
+    41,
+    44,
+    34,
+    39,
+    37,
+    47,
+    46
+  ],
+  "recommended_sets": [
+    {
+      "numbers": [
+        3,
+        5,
+        6,
+        11,
+        21,
+        36
+      ],
+      "strategy": "top_6"
+    },
+    {
+      "numbers": [
+        1,
+        8,
+        11,
+        27,
+        31,
+        35
+      ],
+      "strategy": "weighted_sampling"
+    },
+    {
+      "numbers": [
+        2,
+        4,
+        9,
+        17,
+        21,
+        42
+      ],
+      "strategy": "weighted_sampling"
+    },
+    {
+      "numbers": [
+        2,
+        8,
+        9,
+        23,
+        26,
+        29
+      ],
+      "strategy": "weighted_sampling"
+    },
+    {
+      "maximum_prior_overlap": 2,
+      "numbers": [
+        1,
+        6,
+        13,
+        29,
+        36,
+        37
+      ],
+      "strategy": "diversified"
+    },
+    {
+      "maximum_prior_overlap": 1,
+      "numbers": [
+        4,
+        5,
+        13,
+        27,
+        39,
+        47
+      ],
+      "strategy": "diversified"
+    },
+    {
+      "maximum_prior_overlap": 2,
+      "numbers": [
+        13,
+        21,
+        22,
+        31,
+        36,
+        48
+      ],
+      "strategy": "diversified"
+    },
+    {
+      "maximum_prior_overlap": 2,
+      "numbers": [
+        2,
+        22,
+        26,
+        31,
+        38,
+        40
+      ],
+      "strategy": "diversified"
+    }
+  ],
+  "scores_1_49": [
+    0.1473884,
+    0.12412236,
+    0.1911354,
+    0.14577615,
+    0.26435458,
+    0.22145614,
+    0.17919144,
+    0.1064373,
+    0.08582742,
+    0.10515765,
+    0.24719497,
+    0.10488033,
+    0.14613417,
+    0.16004345,
+    0.15517194,
+    0.14979893,
+    0.1509683,
+    0.10225952,
+    0.10520152,
+    0.12728024,
+    0.21278336,
+    0.08539909,
+    0.09764304,
+    0.08509409,
+    0.11401625,
+    0.1424209,
+    0.11004578,
+    0.08818761,
+    0.09215691,
+    0.08163364,
+    0.12569905,
+    0.10699746,
+    0.10353241,
+    0.07634197,
+    0.14987943,
+    0.19683131,
+    0.07280468,
+    0.11159714,
+    0.07418577,
+    0.09090506,
+    0.07809272,
+    0.14340965,
+    0.08784095,
+    0.07609875,
+    0.09178085,
+    0.02403975,
+    0.05374623,
+    0.09939817,
+    0.1076578
+  ],
+  "seed": 42,
+  "target_date_is_scheduled": true,
+  "target_draw_date": "2026-11-26",
+  "top_10": [
+    5,
+    11,
+    6,
+    21,
+    36,
+    3,
+    7,
+    14,
+    15,
+    16
+  ],
+  "top_15": [
+    5,
+    11,
+    6,
+    21,
+    36,
+    3,
+    7,
+    14,
+    15,
+    16,
+    17,
+    35,
+    13,
+    4,
+    1
+  ],
+  "top_6": [
+    5,
+    11,
+    6,
+    21,
+    36,
+    3
+  ],
+  "uncertainty": {
+    "ensemble_disagreement": "medium",
+    "mean_model_score_std": 0.15404734,
+    "meaning": "Confidence describes model stability/consensus, not the chance of winning.",
+    "prediction_confidence": "medium"
+  }
+}
